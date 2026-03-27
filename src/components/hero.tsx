@@ -126,6 +126,16 @@ export function Hero() {
           <span className="text-text font-medium">products people actually use</span>
         </motion.p>
 
+        <motion.p
+          custom={1}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="text-sm sm:text-base text-text-light font-light max-w-xl mx-auto mb-10 -mt-6"
+        >
+          From e-commerce stores to SaaS platforms and enterprise systems — I build software that streamlines operations for businesses of all sizes.
+        </motion.p>
+
         {/* Social icons + email */}
         <motion.div
           custom={2}

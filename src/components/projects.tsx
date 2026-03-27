@@ -36,7 +36,7 @@ const styles: Record<string, ProjectStyle> = {
     entrance: { x: 0, y: 100 },
     overlay: "/overlays/naturalathlete.webp",
     overlayOpacity: "opacity-[0.08]",
-    url: "https://ntrl-athlete.com",
+    url: "https://staging.ntrl-athlete.com",
     btnCls: "bg-white text-black hover:bg-white/90",
   },
   "Bloom & Blossom": {
@@ -51,7 +51,7 @@ const styles: Record<string, ProjectStyle> = {
     entrance: { x: -120, y: 0 },
     overlay: "/overlays/bloomandblossom.webp",
     overlayOpacity: "opacity-[0.06]",
-    url: "https://bloomnblossom.ph",
+    url: "https://bloomandblossom-two.vercel.app/",
     btnCls: "bg-[#2F5D50] text-white hover:bg-[#2F5D50]/90",
   },
   "Legacy Smiles": {
@@ -66,7 +66,7 @@ const styles: Record<string, ProjectStyle> = {
     entrance: { x: 120, y: 0 },
     overlay: "/overlays/legacysmilesnew.webp",
     overlayOpacity: "opacity-[0.05]",
-    url: "https://legacysmiles.ph",
+    url: "http://legacysmiles.ph/",
     btnCls: "bg-gradient-to-r from-[#3D00FF] to-[#6294E9] text-white hover:opacity-90",
   },
   "Tampus Dental": {
@@ -81,7 +81,7 @@ const styles: Record<string, ProjectStyle> = {
     entrance: { x: 0, y: -100 },
     overlay: "/overlays/tampusdental.webp",
     overlayOpacity: "opacity-[0.10]",
-    url: "https://www.tampusdental.com",
+    url: "https://www.tampusdental.com/",
     btnCls: "bg-gradient-to-r from-[#C49528] to-[#E6BB4A] text-[#002333] font-semibold hover:opacity-90",
   },
   TutorLoop: {
@@ -96,7 +96,7 @@ const styles: Record<string, ProjectStyle> = {
     entrance: { x: 80, y: 60 },
     overlay: "/overlays/tutorloop.webp",
     overlayOpacity: "opacity-[0.06]",
-    url: "https://tutorformystudent.com",
+    url: "https://www.tutorformystudent.com/",
     btnCls: "bg-indigo-900 text-white hover:bg-indigo-800",
   },
   "Horizon ERP": {
