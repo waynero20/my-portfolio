@@ -16,6 +16,12 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.svg",
   },
+  openGraph: {
+    title: "Wayne — Full-Stack Developer",
+    description:
+      "Full-stack developer building products people actually use. Specializing in Next.js, React, TypeScript, and modern web technologies.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

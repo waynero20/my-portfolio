@@ -73,6 +73,8 @@ export function Hero() {
   const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 0.6], [1, 0.92]);
 
+  const dotX = useTransform(scrollYProgress, [0, 0.5], [0, 350]);
+
   return (
     <section ref={ref} className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden">
       <motion.div
@@ -107,7 +109,11 @@ export function Hero() {
               {letter}
             </motion.span>
           ))}
-          <motion.span variants={letterVariant} className="inline-block text-accent">
+          <motion.span
+            variants={letterVariant}
+            className="inline-block text-accent"
+            style={{ x: dotX }}
+          >
             .
           </motion.span>
         </motion.h1>
