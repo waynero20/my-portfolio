@@ -23,9 +23,18 @@ export const metadata: Metadata = {
       "Full-stack developer building products people actually use. Specializing in Next.js, React, TypeScript, and modern web technologies.",
     type: "website",
     url: "https://waynerondina.dev",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Wayne — Full-Stack Developer",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/og-image.png"],
   },
 };
 
