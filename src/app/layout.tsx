@@ -10,6 +10,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://waynerondina.dev"),
   title: "Wayne — Full-Stack Developer",
   description:
     "Full-stack developer building products people actually use. Specializing in Next.js, React, TypeScript, and modern web technologies.",
@@ -21,6 +22,10 @@ export const metadata: Metadata = {
     description:
       "Full-stack developer building products people actually use. Specializing in Next.js, React, TypeScript, and modern web technologies.",
     type: "website",
+    url: "https://waynerondina.dev",
+  },
+  twitter: {
+    card: "summary_large_image",
   },
 };
 
