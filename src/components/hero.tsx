@@ -76,7 +76,7 @@ export function Hero() {
   const dotX = useTransform(scrollYProgress, [0, 0.5], [0, 350]);
 
   return (
-    <section ref={ref} className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden">
+    <section ref={ref} className="relative min-h-[100dvh] flex items-center justify-center px-6 overflow-hidden">
       <motion.div
         style={{ y: textY, opacity, scale }}
         className="max-w-4xl mx-auto text-center relative z-10"

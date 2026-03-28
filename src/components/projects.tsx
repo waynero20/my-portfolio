@@ -128,11 +128,8 @@ function ProjectDisplay({ project }: { project: Project }) {
   const hasBtn = showVisitBtn.has(project.category) && s.url;
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      initial={{ opacity: 0, x: s.entrance.x, y: s.entrance.y }}
-      animate={isInView ? { opacity: 1, x: 0, y: 0 } : {}}
-      transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
       className={`${s.bg} relative w-full py-16 sm:py-24 px-8 sm:px-16 md:px-24 overflow-hidden`}
     >
       {/* Overlay background image */}
@@ -149,7 +146,12 @@ function ProjectDisplay({ project }: { project: Project }) {
         </div>
       )}
 
-      <div className={`relative z-10 grid md:grid-cols-2 gap-12 md:gap-20 items-center max-w-[1400px] mx-auto`}>
+      <motion.div
+        initial={{ opacity: 0, x: s.entrance.x, y: s.entrance.y }}
+        animate={isInView ? { opacity: 1, x: 0, y: 0 } : {}}
+        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+        className={`relative z-10 grid md:grid-cols-2 gap-12 md:gap-20 items-center max-w-[1400px] mx-auto`}
+      >
         <div className={isLeft ? "md:order-2" : ""}>
           <Image
             src={s.logo}
@@ -197,8 +199,8 @@ function ProjectDisplay({ project }: { project: Project }) {
             className={`${s.videoCls} w-full aspect-video object-cover`}
           />
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
 

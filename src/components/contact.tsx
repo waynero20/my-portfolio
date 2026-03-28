@@ -218,7 +218,7 @@ export function Contact() {
     <section
       ref={sectionRef}
       id="contact"
-      className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden"
+      className="relative min-h-[100dvh] flex items-center justify-center px-6 overflow-hidden"
     >
       {/* Background ripple layer */}
       <div className="absolute inset-0 pointer-events-none">

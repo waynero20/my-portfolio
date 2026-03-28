@@ -24,8 +24,10 @@ body {
   overflow-x: clip;
 }
 
-html {
-  scroll-behavior: smooth;
+@media (pointer: fine) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
