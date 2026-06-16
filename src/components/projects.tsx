@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import Image from "next/image";
 import { projects, type Project } from "@/lib/data";
 
@@ -24,21 +24,6 @@ type ProjectStyle = {
 };
 
 const styles: Record<string, ProjectStyle> = {
-  "Natural Athlete": {
-    bg: "bg-[#0A0A0A]",
-    titleCls: "text-white text-4xl sm:text-5xl md:text-6xl font-bold uppercase tracking-wider",
-    taglineCls: "text-white/40 uppercase tracking-[0.3em] text-xs",
-    videoCls: "rounded-2xl",
-    logo: "/logos/ntrl-athlete.webp",
-    logoSize: 120,
-    video: "/videos/naturalathlete.mp4",
-    layout: "right",
-    entrance: { x: 0, y: 100 },
-    overlay: "/overlays/naturalathlete.webp",
-    overlayOpacity: "opacity-[0.08]",
-    url: "https://staging.ntrl-athlete.com",
-    btnCls: "bg-white text-black hover:bg-white/90",
-  },
   "Bloom & Blossom": {
     bg: "bg-[#FAF7F2]",
     titleCls: "text-[#2F5D50] text-4xl sm:text-5xl md:text-6xl font-bold italic",
@@ -91,7 +76,7 @@ const styles: Record<string, ProjectStyle> = {
     videoCls: "rounded-[1.5rem]",
     logo: "/logos/tutorloop.webp",
     logoSize: 120,
-    video: "/videos/tutorformystudent.mp4",
+    video: "/videos/tutorloop.mp4",
     layout: "right",
     entrance: { x: 80, y: 60 },
     overlay: "/overlays/tutorloop.webp",
@@ -120,12 +105,20 @@ const showVisitBtn = new Set(["E-COMMERCE", "SEO", "MARKETPLACE"]);
 
 function ProjectDisplay({ project }: { project: Project }) {
   const ref = useRef(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
   const s = styles[project.title];
+
+  // Defer video load/playback until the section scrolls into view
+  useEffect(() => {
+    if (isInView) videoRef.current?.play().catch(() => {});
+  }, [isInView]);
+
   if (!s) return null;
 
   const isLeft = s.layout === "left";
   const hasBtn = showVisitBtn.has(project.category) && s.url;
+  const poster = s.video.replace("/videos/", "/posters/").replace(/\.mp4$/, ".jpg");
 
   return (
     <div
@@ -191,11 +184,13 @@ function ProjectDisplay({ project }: { project: Project }) {
 
         <div className={isLeft ? "md:order-1" : ""}>
           <video
+            ref={videoRef}
             src={s.video}
-            autoPlay
+            poster={poster}
             loop
             muted
             playsInline
+            preload="none"
             className={`${s.videoCls} w-full aspect-video object-cover`}
           />
         </div>

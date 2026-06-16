@@ -13,23 +13,6 @@ export const categories = ["E-COMMERCE", "SEO", "MARKETPLACE", "ERP"] as const;
 
 export const projects: Project[] = [
   {
-    title: "Natural Athlete",
-    tagline: "Fitness E-Commerce Platform",
-    description:
-      "End-to-end e-commerce platform for fitness and activewear products. Features a complete shopping experience with cart management, checkout flow, order tracking, and a full admin suite with inventory control and support ticket system.",
-    highlights: [
-      "Full shopping cart & checkout flow",
-      "Inventory management system",
-      "Discount & promotions engine",
-      "Customer support ticket system",
-      "Audit logging & team management",
-    ],
-    stack: ["Next.js", "TypeScript", "Supabase", "AWS S3", "Upstash Redis", "Tailwind CSS"],
-    gradient: "from-emerald-500 to-teal-600",
-    accentColor: "#10b981",
-    category: "E-COMMERCE",
-  },
-  {
     title: "Bloom & Blossom",
     tagline: "Flower Delivery E-Commerce",
     description:
@@ -126,7 +109,8 @@ export const techStack = {
 export const socials = {
   github: "https://github.com/waynero20",
   linkedin: "https://www.linkedin.com/in/waynerondina/",
-  facebook: "https://www.facebook.com/rondina20",
+  facebook: "https://www.facebook.com/waynerondina20/",
+  instagram: "https://www.instagram.com/waynerondina/",
   gravatar: "https://gravatar.com/waynerondina20",
   email: "mailto:waynerondina20@gmail.com",
   phone: "tel:+639498718967",

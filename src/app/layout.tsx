@@ -15,7 +15,12 @@ export const metadata: Metadata = {
   description:
     "Full-stack developer building products people actually use. Specializing in Next.js, React, TypeScript, and modern web technologies.",
   icons: {
-    icon: "/favicon.svg",
+    icon: [
+      { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-64.png", type: "image/png", sizes: "64x64" },
+      { url: "/favicon-180.png", type: "image/png", sizes: "180x180" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
   openGraph: {
     title: "Wayne — Full-Stack Developer",
