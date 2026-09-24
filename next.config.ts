@@ -15,7 +15,7 @@ function resolveBuildSha(): string {
 }
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ["192.168.1.10"],
+  allowedDevOrigins: ["192.168.1.10","192.168.1.118"],
   images: {
     formats: ["image/avif", "image/webp"],
   },

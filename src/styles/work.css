@@ -208,6 +208,27 @@
   }
 }
 
+/* Below lg and on every iOS screen, createCast() arms the title as "clip": the same wipe as a hard seam
+   of clip-path insets instead of masks. iOS WebKit leaves a var()-driven text mask stale partway (the
+   night face stayed, with a sliver of the brand face at its left) and cuts the bled face short on the
+   right, while a clip-path inset repaints as reliably as the flood's. The seam runs from 10% before
+   the column to 10% past it, and every outer inset is negative, so no glyph overhang is cut and the
+   faces need no bleed. */
+.reel-title[data-cast-armed="clip"] {
+  > [data-title-face] {
+    --bleed: 0px;
+    mask-image: none;
+  }
+
+  > .reel-title-night {
+    clip-path: inset(-50% -50% -50% calc((var(--cast, 0) * 1.2 - 0.1) * 100%));
+  }
+
+  > .reel-title-brand {
+    clip-path: inset(-50% calc((1.1 - var(--cast, 0) * 1.2) * 100%) -50% -50%);
+  }
+}
+
 /* A brand title gradient (Tampus gold) fills the glyphs of both faces, from the text's start to its
    end (the stops skip the bleed). Forced colours get plain system text. */
 .reel-title-gradient > [data-title-face] {
@@ -254,6 +275,16 @@
     max-width: 42rem;
     padding-block: max(var(--ph-pad), (100svh - var(--ph-above) - var(--ph-below) - var(--ph-screen-w) / 1.6) / 2)
       var(--ph-pad);
+  }
+
+  /* The rim repaints on every frame of a light-up and a flood. Desktop's 96px blur spans a quarter of a
+     phone's width, so phones get a tighter shadow (about 8% of the width, as desktop's is of 1440):
+     the same surface-over-surface read at a fraction of the paint. */
+  .reel-edge {
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.1),
+      0 16px 32px -12px rgb(0 0 0 / 0.38),
+      0 0 16px rgb(0 0 0 / 0.14);
   }
 
   /* As on desktop, reels 2… light up over another brand's room, so their spill waits for the un-flood. */

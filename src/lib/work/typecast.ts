@@ -15,6 +15,18 @@ const CAST_DURATION = DURATION.regrade;
 /** A brand face starts loading once its reel is within a viewport of the screen. */
 const LOAD_AHEAD = "100% 0px";
 
+/** Below lg (useMotionScene rebuilds the casts across it), the wipe is a clip-path seam (work.css). */
+const CLIP_WIPE_QUERY = "(max-width: 1023.98px)";
+
+/**
+ * "clip" below lg and on iOS (every iOS browser is WebKit, and only it supports -webkit-touch-callout),
+ * whose text masks go stale mid-wipe; "" keeps desktop's soft mask wipe.
+ */
+function wipeKind(): "clip" | "" {
+  const clip = window.matchMedia(CLIP_WIPE_QUERY).matches || CSS.supports("-webkit-touch-callout", "none");
+  return clip ? "clip" : "";
+}
+
 /**
  * The face's --fit: a hidden nowrap copy of it, set at FIT_PROBE_PX beside it in the title (so it
  * inherits the title's axis and face variables), measured and removed.
@@ -100,7 +112,7 @@ export function createCast(title: HTMLElement, { reduced }: { reduced: boolean }
     if (!reduced) {
       tween = gsap.fromTo(title, { "--cast": 0 }, { "--cast": 1, duration: CAST_DURATION, ease: "dolly", paused: true });
     }
-    title.toggleAttribute("data-cast-armed", true);
+    title.setAttribute("data-cast-armed", wipeKind());
     armed = true;
     render();
   }

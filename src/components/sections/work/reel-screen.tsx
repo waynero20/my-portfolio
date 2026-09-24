@@ -103,12 +103,14 @@ export function ReelScreen({ index, slug, title, media, logo, overlay, spillMode
             fit,
           )}
         />
+        {/* The backdrop blur re-runs on every video frame beneath it, which phones skip: the plate is 90%
+            opaque, so it barely shows. */}
         <button
           type="button"
           aria-pressed={paused}
           aria-label={`Pause the ${title} recording`}
           onClick={toggle}
-          className="absolute right-3 bottom-3 grid size-11 place-items-center rounded-full bg-surface/90 text-ink shadow-[0_1px_3px_rgb(0_0_0/0.25)] ring-1 ring-ink/10 backdrop-blur-sm transition-colors duration-(--dur-micro) hover:bg-ink hover:text-surface"
+          className="absolute right-3 bottom-3 grid size-11 place-items-center rounded-full bg-surface/90 text-ink shadow-[0_1px_3px_rgb(0_0_0/0.25)] ring-1 ring-ink/10 backdrop-blur-sm transition-colors duration-(--dur-micro) hover:bg-ink hover:text-surface max-lg:backdrop-blur-none"
         >
           {paused ? <Play aria-hidden className="size-4" /> : <Pause aria-hidden className="size-4" />}
         </button>
