@@ -103,6 +103,35 @@
   }
 }
 
+/* Compositor layers for the scrubbed pieces. Every frame of a light-up, flood or un-flood changes the
+   layer's clip and opacity, the edge's box and the spill's opacity. Painted into their stage, each such
+   change repainted the whole stage in WebKit (the set wall's blend and mask, the spill's gradients, the
+   rim's shadow, the copy), which dropped frames all through Work on Safari and iPhone. On layers of
+   their own the compositor applies the clip and the opacities, and only the edge repaints (its box).
+   The set wall gets its own layer too, so a fade of the copy or the chips never repaints its blend.
+   Each is a stacking context already (clip-path, absolute with opacity) or paints alone, so nothing
+   moves or blends differently. The spill only where it can show: reel 1's, and the last reel's while
+   it un-floods. */
+@variant cinema {
+  .reel-layer,
+  .reel-edge,
+  .reel-set-wall,
+  [data-reel-index="0"] > [data-reel-stage] > .reel-spill,
+  article:last-of-type > [data-reel-stage] > .reel-spill {
+    will-change: transform;
+  }
+}
+
+@variant phone-cinema {
+  .reel-layer,
+  .reel-edge,
+  .reel-set-wall,
+  [data-reel-index="0"] > [data-reel-stage] > .reel-spill,
+  article:last-of-type > [data-reel-stage] > .reel-spill {
+    will-change: transform;
+  }
+}
+
 /* The stages overlap in cinema, so only the lit, uncovered part of the top layer takes the pointer:
    the stage boxes let it through (reel.tsx), the layer catches it, and clip-path clips hit-testing
    too, so the covered reel's CTA and pause button stay clickable around the next reel's lit screen.
@@ -146,7 +175,7 @@
 /* The re-cast title (Wayne's W20). The box reserves one line at the size cap (--title-h), so a re-cast
    never moves anything around it. The h3 stacks its two faces in one grid cell on a shared baseline:
    the night face (the heading's text) and the brand face (a hidden copy in the brand's own display
-   face). createCast() measures each face's fit: font-size = --fit (night) or --fit-brand (brand) ×
+   face). createCasts() measures each face's fit: font-size = --fit (night) or --fit-brand (brand) ×
    the box width keeps each face as wide as its box, up to the cap. The fallback --fit holds a
    15-character night title inside a phone-width box until the measurement lands. */
 .reel-title-box {
@@ -170,7 +199,7 @@
   grid-area: 1 / 1;
 }
 
-/* The brand face stays out of the layout (and its font unfetched) until createCast() has loaded it,
+/* The brand face stays out of the layout (and its font unfetched) until createCasts() has loaded it,
    measured it and armed the title. */
 .reel-title-brand {
   display: none;
@@ -184,7 +213,7 @@
   user-select: none;
 }
 
-/* Armed, the re-cast is --cast from 0 (night) to 1 (brand), tweened by createCast(): a soft-edged
+/* Armed, the re-cast is --cast from 0 (night) to 1 (brand), tweened by createCasts(): a soft-edged
    wipe from left to right in which the brand face takes the night face's place, their two masks
    adding up to one at every point. Each face bleeds past its box by --bleed (padding, cancelled by an
    equal negative margin), so the masks and the gold fill reach the glyphs' overhangs without moving
@@ -208,7 +237,7 @@
   }
 }
 
-/* Below lg and on every iOS screen, createCast() arms the title as "clip": the same wipe as a hard seam
+/* Below lg and on every iOS screen, createCasts() arms the title as "clip": the same wipe as a hard seam
    of clip-path insets instead of masks. iOS WebKit leaves a var()-driven text mask stale partway (the
    night face stayed, with a sliver of the brand face at its left) and cuts the bled face short on the
    right, while a clip-path inset repaints as reliably as the flood's. The seam runs from 10% before

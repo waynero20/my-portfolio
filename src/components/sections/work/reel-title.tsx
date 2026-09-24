@@ -21,7 +21,7 @@ interface Props {
  * (work.css) holding the title twice, stacked on one baseline. The night face (Google Sans Flex at
  * the night axes) is the heading's text and accessible name; the brand face (the --ff-title-{slug}
  * subset from src/lib/fonts.ts, at the brand's weight, style, case and tracking) is a hidden copy
- * that createCast() arms once its font has loaded, then wipes in when the flood completes.
+ * that createCasts() arms once its font has loaded, then wipes in when the flood completes.
  */
 export function ReelTitle({ id, slug, title, night, font, gradient, className }: Props) {
   const style: CssVars = {
