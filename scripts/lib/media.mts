@@ -66,9 +66,22 @@ export const CLIPS: Record<Slug, Clip> = {
     startAt: 9.35,
     posterAt: 2.25,
   },
-  // Playwright recordings at 1440×900 (already 16:10). startAt drops the page load and leaves a 3s hero hold.
-  matchme: { source: "video-sources/matchme.webm", fit: "cover", cropTop: 0, startAt: 1.7, posterAt: 0 },
-  pickanddink: { source: "video-sources/pickanddink.webm", fit: "cover", cropTop: 0, startAt: 2.5, posterAt: 0 },
+  // 2936×1542 screen recordings (~1.9:1, no menu-bar strip) that open on the loaded hero. A 16:10 crop would cut
+  // Match Me's header mark in the order flow; Pick & Dink is the same capture, so it is letterboxed the same way.
+  matchme: {
+    source: "video-sources/matchme.mov",
+    copyFrom: "public/videos/matchme.mov",
+    fit: "contain",
+    cropTop: 0,
+    posterAt: 0,
+  },
+  pickanddink: {
+    source: "video-sources/pickanddink.mov",
+    copyFrom: "public/videos/pickanddink.mov",
+    fit: "contain",
+    cropTop: 0,
+    posterAt: 0,
+  },
 };
 
 /** Per-file video budgets in bytes (decimal MB). */

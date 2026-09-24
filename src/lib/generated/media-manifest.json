@@ -211,9 +211,9 @@
   },
   "matchme": {
     "w": 1280,
-    "h": 800,
-    "duration": 28.266,
-    "fit": "cover",
+    "h": 672,
+    "duration": 19.867,
+    "fit": "contain",
     "posters": {
       "720": {
         "avif": "/posters/matchme-720.avif",
@@ -233,13 +233,13 @@
       },
       {
         "src": "/videos/matchme-720.av1.mp4",
-        "type": "video/mp4; codecs=\"av01.0.04M.08\"",
+        "type": "video/mp4; codecs=\"av01.0.01M.08\"",
         "width": 720,
         "codec": "av1"
       },
       {
         "src": "/videos/matchme-1280.h264.mp4",
-        "type": "video/mp4; codecs=\"avc1.640020\"",
+        "type": "video/mp4; codecs=\"avc1.64001F\"",
         "width": 1280,
         "codec": "h264"
       },
@@ -253,9 +253,9 @@
   },
   "pickanddink": {
     "w": 1280,
-    "h": 800,
-    "duration": 22.7,
-    "fit": "cover",
+    "h": 672,
+    "duration": 18.9,
+    "fit": "contain",
     "posters": {
       "720": {
         "avif": "/posters/pickanddink-720.avif",
@@ -275,13 +275,13 @@
       },
       {
         "src": "/videos/pickanddink-720.av1.mp4",
-        "type": "video/mp4; codecs=\"av01.0.04M.08\"",
+        "type": "video/mp4; codecs=\"av01.0.01M.08\"",
         "width": 720,
         "codec": "av1"
       },
       {
         "src": "/videos/pickanddink-1280.h264.mp4",
-        "type": "video/mp4; codecs=\"avc1.640020\"",
+        "type": "video/mp4; codecs=\"avc1.64001F\"",
         "width": 1280,
         "codec": "h264"
       },

@@ -17,7 +17,10 @@ let ambientOwner: ReelSlug | null = null;
 interface Options {
   /** Off under reduced motion and for "split" brands, which keep their static pair. */
   enabled: boolean;
-  /** The reel's frame; the pair is written on its stage, which the spill layer inherits from. */
+  /**
+   * The reel's frame. The pair is written on its stage's spill, the only element that reads it, so a
+   * video frame restyles the spill alone rather than the whole reel.
+   */
   target: RefObject<HTMLElement | null>;
   /** The reel's position in PROJECTS (its reelScreens signal). */
   index: number;
@@ -30,7 +33,7 @@ const rgbCss = ([r, g, b]: Rgb) => `rgb(${r} ${g} ${b})`;
  * plays, its spill can show (reelScreens: cinema hides reels 2…'s spill except the last one's
  * un-flood) and its room has not fully flooded, each presented frame samples /ambi/{slug}.json at
  * the frame's mediaTime (interpolated between the 4fps samples), writes --reel-spill-l/-r on the
- * stage (skipping changes under 1/255) and passes the pair to atmosphere.setAmbient. The track is
+ * spill (skipping changes under 1/255) and passes the pair to atmosphere.setAmbient. The track is
  * fetched the first time that is wanted, not on mount. Paused, detached, hidden or flooded, the loop
  * stops and the last colours stay. With no track, no rVFC support or when disabled, the brand's
  * static pair (the [data-reel] tokens) shows.
@@ -42,8 +45,9 @@ export function useAmbilight(
 ): void {
   useEffect(() => {
     const video = videoRef.current;
-    const stage = target.current?.closest<HTMLElement>("[data-reel-stage]") ?? null;
-    if (!enabled || !video || !stage || typeof video.requestVideoFrameCallback !== "function") return;
+    const spill =
+      target.current?.closest<HTMLElement>("[data-reel-stage]")?.querySelector<HTMLElement>("[data-reel-spill]") ?? null;
+    if (!enabled || !video || !spill || typeof video.requestVideoFrameCallback !== "function") return;
 
     let track: AmbiTrack | null = null;
     let requested = false;
@@ -58,8 +62,8 @@ export function useAmbilight(
       const r = roundRgb(sample.r);
       if (last && sameRgb(last.l, l) && sameRgb(last.r, r)) return;
       last = { l, r };
-      stage.style.setProperty(SPILL_VARS[0], rgbCss(l));
-      stage.style.setProperty(SPILL_VARS[1], rgbCss(r));
+      spill.style.setProperty(SPILL_VARS[0], rgbCss(l));
+      spill.style.setProperty(SPILL_VARS[1], rgbCss(r));
       atmosphere.setAmbient(rgbToHex(l), rgbToHex(r));
       ambientOwner = slug;
     };
@@ -101,7 +105,7 @@ export function useAmbilight(
       video.removeEventListener("play", sync);
       video.removeEventListener("pause", sync);
       if (handle !== null) video.cancelVideoFrameCallback(handle);
-      for (const name of SPILL_VARS) stage.style.removeProperty(name);
+      for (const name of SPILL_VARS) spill.style.removeProperty(name);
       if (ambientOwner === slug) {
         atmosphere.setAmbient(null);
         ambientOwner = null;
