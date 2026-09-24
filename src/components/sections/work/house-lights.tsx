@@ -23,7 +23,12 @@ export function HouseLights({ lampRef }: Props) {
   const fxRoot = useSyncExternalStore(subscribeNever, getFxRoot, getNoRoot);
   if (!fxRoot) return null;
   return createPortal(
-    <div ref={lampRef} aria-hidden className="pointer-events-none fixed inset-0 z-(--z-dip) bg-booth opacity-0" />,
+    // 100lvh from the top below lg, like the Atmosphere, so iOS's toolbar never resizes it mid-scroll.
+    <div
+      ref={lampRef}
+      aria-hidden
+      className="pointer-events-none fixed inset-0 z-(--z-dip) bg-booth opacity-0 max-lg:bottom-auto max-lg:h-lvh"
+    />,
     fxRoot,
   );
 }

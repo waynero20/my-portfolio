@@ -3,7 +3,7 @@
 
 import type { ReelMedia, VideoCodec } from "@/lib/content";
 
-/** At most this many videos have a src attached at once. */
+/** At most this many videos have a src attached at once: two, or three with `around` (phones). */
 export const MAX_ARMED = 2;
 
 /** The rendition width for phones (MQ.mobileVideo) and for everything else. */
@@ -44,16 +44,26 @@ export interface PoolEntry {
  * articles sharing the viewport in flow), the two most seen, so neither drops to its poster mid-view.
  * While one is seen, it plus its neighbour in the scroll direction, which loads ahead. Ties go to the
  * screen further along the scroll direction. Nothing while none is seen.
+ *
+ * `around` (phones) keeps a third: while one is seen, both its neighbours, so scrolling back finds the
+ * previous reel still loaded; while two are, the neighbour beyond them in the scroll direction, so each
+ * hand-off swaps one src, at its start, and the next reel has the whole reel before it to load.
  */
-export function pickArmed(entries: readonly PoolEntry[], direction: 1 | -1): number[] {
+export function pickArmed(entries: readonly PoolEntry[], direction: 1 | -1, { around = false } = {}): number[] {
   const seen = entries
     .filter((entry) => entry.ratio > 0)
     .sort((a, b) => b.ratio - a.ratio || (b.index - a.index) * direction);
   const [current, runnerUp] = seen;
   if (!current) return [];
-  if (runnerUp) return [current.index, runnerUp.index];
+  const exists = (index: number) => entries.some((entry) => entry.index === index);
+  if (runnerUp) {
+    const pair = [current.index, runnerUp.index];
+    const beyond = direction > 0 ? Math.max(...pair) + 1 : Math.min(...pair) - 1;
+    return around && exists(beyond) ? [...pair, beyond] : pair;
+  }
   const next = current.index + direction;
-  return entries.some((entry) => entry.index === next) ? [current.index, next] : [current.index];
+  const previous = current.index - direction;
+  return [current.index, ...[next, ...(around ? [previous] : [])].filter(exists)];
 }
 
 /** "auto" plays when motion is allowed; "paused" and "playing" are the viewer's own choice (sticky). */

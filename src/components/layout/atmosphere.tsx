@@ -12,7 +12,10 @@ export function Atmosphere() {
     <div
       aria-hidden
       className={cn(
-        "pointer-events-none fixed inset-0 z-(--z-atmo)",
+        // Below lg the layer is 100lvh from the top rather than the viewport's height: iOS resizes a
+        // fixed inset-0 layer on every frame of its toolbar showing or hiding (on each scroll back up),
+        // repainting the whole pool at the phone's resolution mid-scroll.
+        "pointer-events-none fixed inset-0 z-(--z-atmo) max-lg:bottom-auto max-lg:h-lvh",
         "bg-radial-[ellipse_95%_45%_at_50%_34%] from-tungsten/14 to-transparent to-70%",
         "lg:bg-radial-[ellipse_60%_62%_at_74%_36%]",
       )}

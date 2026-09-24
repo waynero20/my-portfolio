@@ -27,10 +27,31 @@ interface PoolMember extends PoolEntry {
   setArmed(armed: boolean): void;
 }
 
-// Every mounted screen, so pickArmed can keep at most two srcs attached across the page.
+// Every mounted screen, so pickArmed can keep at most two srcs attached across the page (three on phones).
 const pool = new Set<PoolMember>();
 let lastScrollY = 0;
+let lastScrollAt = 0;
+let scrollSpeed = 0;
 let scrollDirection: 1 | -1 = 1;
+let settleTimer: ReturnType<typeof setTimeout> | undefined;
+
+/**
+ * Phones and tablets below lg. There the pool keeps both neighbours armed (pickArmed's `around`) and
+ * holds its src changes through a flick: attaching a src builds a media player and dropping one tears
+ * it down, main-thread work that stuttered a fast scroll back up through the reels.
+ */
+const PHONE_QUERY = "(max-width: 1023.98px)";
+let phoneQuery: MediaQueryList | null = null;
+const onPhone = () => (phoneQuery ??= window.matchMedia(PHONE_QUERY)).matches;
+
+/** A scroll faster than this (px/s) is a flick, not reading. */
+const FLICK_SPEED = 1000;
+
+/** A flick's src changes apply this long (ms) after its last scroll event. */
+const SETTLE_MS = 180;
+
+/** Two scroll events further apart than this (ms) start a new scroll: no speed is read across them. */
+const SCROLL_GAP_MS = 100;
 
 /** Capture: it runs before ScrollTrigger's own scroll handler (on window, bubbling). */
 const SCROLL_LISTENER = { passive: true, capture: true } as const;
@@ -43,8 +64,16 @@ const SCROLL_LISTENER = { passive: true, capture: true } as const;
 function trackDirection(): void {
   const y = window.scrollY;
   if (y === lastScrollY) return;
+  const now = performance.now();
+  const elapsed = now - lastScrollAt;
+  scrollSpeed = elapsed > 0 && elapsed < SCROLL_GAP_MS ? (Math.abs(y - lastScrollY) * 1000) / elapsed : 0;
+  lastScrollAt = now;
   scrollDirection = y > lastScrollY ? 1 : -1;
   lastScrollY = y;
+}
+
+function flicking(): boolean {
+  return scrollSpeed > FLICK_SPEED && performance.now() - lastScrollAt < SETTLE_MS;
 }
 
 function joinPool(member: PoolMember): void {
@@ -57,11 +86,20 @@ function joinPool(member: PoolMember): void {
 
 function leavePool(member: PoolMember): void {
   pool.delete(member);
-  if (pool.size === 0) window.removeEventListener("scroll", trackDirection, SCROLL_LISTENER);
+  if (pool.size > 0) return;
+  window.removeEventListener("scroll", trackDirection, SCROLL_LISTENER);
+  clearTimeout(settleTimer);
 }
 
 function rebalancePool(): void {
-  const armed = new Set(pickArmed([...pool], scrollDirection));
+  const phone = onPhone();
+  if (phone && flicking()) {
+    // Played and paused as before (each screen's own sync), but no src changes until the flick settles.
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(rebalancePool, SETTLE_MS);
+    return;
+  }
+  const armed = new Set(pickArmed([...pool], scrollDirection, { around: phone }));
   for (const member of pool) member.setArmed(armed.has(member.index));
 }
 
@@ -112,7 +150,8 @@ interface Options {
  * Drives one reel screen's muted loop (preload="none"). Each clip's trim (the manifest's startAt)
  * is baked into the encodes, so every src plays from 0.
  * - The src is attached only while pickArmed picks the screen (the one being seen, plus the next in
- *   the scroll direction), so no video is requested before Work and at most two hold a src.
+ *   the scroll direction), so no video is requested before Work and at most two hold a src. Phones
+ *   keep both neighbours (three) and apply the changes once a flick settles (rebalancePool).
  * - What counts as seen is IntersectionObserver's ratio times the scene's share (reelScreens): in
  *   cinema the stages overlap, so a stage rising unlit, a screen the next reel has lit up over and
  *   a covered reel all count as unseen even though they intersect the viewport.

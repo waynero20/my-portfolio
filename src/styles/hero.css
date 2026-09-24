@@ -1,20 +1,22 @@
 /* Hero styles. Owner: M2 hero (W8).
 
    The cold open is laid out from custom properties. hero.tsx passes the font metrics in from
-   hero-fit.ts (--wayne-em-112, --rondina-em-75/-112, --cap-em, --cap-over, --cap-under, all in em, and
-   --hero-track-phone, the phones' tracking)
+   hero-fit.ts (--wayne-em-112, --rondina-em-112, the phones' bare advances --wayne-adv-75 and
+   --rondina-adv-75, --cap-em, --cap-over, --cap-under, all in em, and each word's letter gaps,
+   --wayne-gaps and --rondina-gaps)
    and the bust rig from generated/portrait.ts (--head-ratio, the photo's size --photo-u-w/-h and the
    head box in photo px: --head-u-x, --head-u-y, --head-u-h). They sit on .hero-frame, so the lower third can read the geometry too; every
    length is resolved where it is used (100cqi is always the frame's width). Lengths:
    --lb          letterbox bar height: 4svh from 720px tall, 9svh from 900px, desktop only.
-   --fs          the name's font size, capped so RONDINA always fits the frame: phones size it from the
-                 head (--fs-per-m), desktop from the screen (--text-display).
+   --fs          the name's font size: phones size it from the frame's width (--name-fill), desktop from
+                 the screen (--text-display), capped so RONDINA always fits the frame.
    --m           the head's height, crown to chin line (height-aware everywhere: the fold sizes it).
    --s           CSS px per photo px (face.png is the unit of the whole rig).
    --head-top    the head's top edge, from the top of the name block.
    --head-left   the head's left edge, from the frame's left edge.
    --wayne-top   WAYNE's cap top, from the top of the name block.
-   --chin        RONDINA's cap top: 3% of the head below the chin line (clear of the face).
+   --chin        RONDINA's cap top: desktop 3% of the head below the chin line (clear of the face), phones
+                 0.28 cap under WAYNE's baseline.
    --name-lift   desktop: how far the name block (with the head) rises to centre the name on the stage.
    --rig-x/-y    where the photo's top-left corner lands; every rig layer is a box in photo px from it.
 
@@ -74,60 +76,37 @@
 }
 
 .hero-frame {
-  --rondina-em: var(--rondina-em-75);
-  /* Phones (W24): the name is a fixed share of the head, so the two grow together; never under
-     --fs-min, never wider than the frame. */
-  --fs-per-m: 0.33;
-  --fs-min: 64px;
-  --fs: clamp(var(--fs-min), calc(var(--m) * var(--fs-per-m)), calc(100cqi / var(--rondina-em)));
+  /* Phones (Wayne's W27): a poster on one 100svh screen. The one-line eyebrow, then the name as one
+     block, WAYNE over RONDINA, each word tracked out to the frame's full width (.hero-word below), then
+     the head, and "See the work" at the screen's foot. RONDINA's bare letters take --name-fill of the
+     width, never taller than 13svh (landscape phones); WAYNE, at the same size, spreads its five
+     letters wider apart. Each word spans --name-w: the frame's width, or 5.5 times the size where the
+     13svh cap keeps the letters small (landscape), so they never scatter across a wide screen. */
+  --name-fill: 0.8;
+  --fs: min(calc(var(--name-fill) * 100cqi / var(--rondina-adv-75)), 13svh);
+  --name-w: min(100cqi, var(--fs) * 5.5);
   --cap: calc(var(--cap-em) * var(--fs));
-  /* Phones (W14, W24): the whole cold open fits one 100svh screen, and the head (with the name, which
-     follows it) takes all the height the rest leaves. --chrome-sm is everything on that screen except
-     the name block: 1.5 frame padding, the eyebrow (5.25: the role on two lines, the status reserving
-     two), the 1.5 gap to the name; below it the 1 gap, the lead (--lead-lines of 1.62 × 1.0625), the
-     1 gap, the 3.25 CTA row, the 0.75 gap, the 3.25 social row and the frame's 1.5 bottom margin (sm
-     and md below). Keep it in step with hero.tsx's spacing. The name block is WAYNE (--head-top:
-     cap + 0.12 of --fs), the photo from the crown down (--m-tall head heights, with --belly past the
-     cut: negative, so the lead starts where the photo is cut and the dissolve's tail runs on, fading,
-     behind its first lines). --m is the head that fills the fold, with the name at --fs-per-m of it,
-     or at --fs-min where that is larger (short phones: the lesser of the two heads is the one that
-     fits). */
-  --lead-lines: 3;
-  --belly: -0.06;
-  --chrome-sm: calc(19rem + var(--lead-lines) * 1.72125rem);
-  --m-room: calc(100svh - var(--chrome-sm));
-  --m-tall: calc((var(--photo-u-h) - var(--head-u-y)) / var(--head-u-h) + var(--belly));
-  --m: clamp(
-    120px,
-    min(
-      var(--m-room) / (var(--m-tall) + (var(--cap-em) + 0.12) * var(--fs-per-m)),
-      (var(--m-room) - (var(--cap-em) + 0.12) * var(--fs-min)) / var(--m-tall)
-    ),
-    min(74vw, 460px)
-  );
-  /* Mobile: WAYNE, then the head just clear of WAYNE's foot (no overlap), then RONDINA. */
-  --head-top: calc(var(--cap) + 0.12 * var(--fs));
   --wayne-top: 0px;
+  --chin: calc(var(--cap) * 1.28);
+  --name-h: calc(var(--chin) + var(--cap));
+  /* The head starts 1rem under RONDINA's baseline and takes the height the rest of the screen leaves,
+     keeping --below-chin more of itself (neck and shoulders) above the CTA; the photo's cut and the
+     dissolve's tail run on, fading, behind the CTA. --chrome-sm is everything on the screen but the
+     name block and the head: 1.5 frame padding, the 1.25 eyebrow, the 2.5 gap to the name, the 1 gap
+     to the head, then the 3.25 CTA row and the frame's 1.5 bottom margin. Keep it in step with
+     hero.tsx's spacing. */
+  --below-chin: 0.6;
+  --chrome-sm: 11rem;
+  --head-top: calc(var(--name-h) + 1rem);
+  --m: clamp(120px, (100svh - var(--chrome-sm) - var(--name-h)) / (1 + var(--below-chin)), min(86vw, 460px));
   --head-w: calc(var(--m) * var(--head-ratio));
   --head-left: calc((100cqi - var(--head-w)) / 2);
-  --chin: calc(var(--head-top) + var(--m) * 1.03);
   --s: calc(var(--m) / var(--head-u-h));
   --rig-x: calc(var(--head-left) - var(--head-u-x) * var(--s));
   --rig-y: calc(var(--head-top) - var(--head-u-y) * var(--s));
 
   max-width: 80rem;
   padding-top: calc(var(--lb) + 1.5rem);
-
-  /* From sm the eyebrow takes two lines (2.75), the lower third opens up (1.5 above the lead, 1.25
-     under it) and the lead runs a line shorter; from md the CTAs and the socials share one row. */
-  @variant sm {
-    --lead-lines: 2;
-    --chrome-sm: calc(17.25rem + var(--lead-lines) * 1.72125rem);
-  }
-
-  @variant md {
-    --chrome-sm: calc(13.25rem + var(--lead-lines) * 1.72125rem);
-  }
 
   @variant lg {
     /* Desktop: the head right of WAYNE, WAYNE at forehead level, RONDINA below the chin. The head is
@@ -167,6 +146,7 @@
       calc(var(--wayne-em-112) * --theme(--text-display inline) + var(--head-ratio) * var(--m-max) + 6rem)
     );
     --head-top: 0px;
+    --chin: calc(var(--head-top) + var(--m) * 1.03);
     /* WAYNE sits low beside the head, its baseline 0.28 cap above RONDINA's cap line, so the two
        lines read as one name (Wayne's W22); never higher than forehead level (0.14 of the head). The
        spacer below absorbs the difference, so the name block's height is unchanged. */
@@ -189,22 +169,12 @@
   }
 }
 
-/* The team edition's lead runs a line longer below lg. */
-[data-edition="team"] .hero-frame {
-  --lead-lines: 4;
-
-  @variant sm {
-    --lead-lines: 3;
-  }
-}
-
 .hero-name {
   position: relative;
   isolation: isolate;
   font-size: var(--fs);
-  /* Phones: the block ends --belly head heights past the photo's cut (below, the dots fade out behind
-     the lead). */
-  min-height: calc(var(--rig-y) + var(--photo-u-h) * var(--s) + var(--m) * var(--belly));
+  /* Phones: the block ends --below-chin head heights under the chin, where the CTA's row begins. */
+  min-height: calc(var(--head-top) + var(--m) * (1 + var(--below-chin)));
 
   @variant lg {
     min-height: 0;
@@ -236,8 +206,6 @@
   margin-inline: auto;
   padding-top: var(--wayne-top);
   line-height: --theme(--text-display--line-height inline);
-  /* The narrow cut on phones sits its letters closer, so it tracks looser: the same gaps as desktop's. */
-  letter-spacing: var(--hero-track-phone);
   text-align: center;
 
   @variant lg {
@@ -271,6 +239,26 @@
 .hero-word {
   position: relative;
   display: inline-block;
+
+  /* Phones: tracked out to --name-w (the frame's full width on a phone held upright), the rest of it
+     after the word's bare advance spread over the gaps between its letters. The negative end margin
+     takes back the tracking after the last letter, so the word's box ends at its last glyph. */
+  @media (max-width: 1023px) {
+    --track: calc((var(--name-w) - var(--adv) * 1em) / var(--gaps));
+
+    letter-spacing: var(--track);
+    margin-right: calc(var(--track) * -1);
+
+    &[data-hero-word="first"] {
+      --adv: var(--wayne-adv-75);
+      --gaps: var(--wayne-gaps);
+    }
+
+    &[data-hero-word="last"] {
+      --adv: var(--rondina-adv-75);
+      --gaps: var(--rondina-gaps);
+    }
+  }
 
   /* WAYNE passes behind the bust; RONDINA runs in front of the neck and the near dots. */
   &[data-hero-word="first"] {

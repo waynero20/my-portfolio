@@ -11,7 +11,7 @@ import type { CssVars } from "@/lib/types";
 import { EDITIONS, SITE, SOCIALS } from "@/lib/data";
 import { DISSOLVE } from "@/lib/generated/dissolve";
 import { PORTRAIT } from "@/lib/generated/portrait";
-import { HERO_CAP_EM, HERO_PHONE_TRACKING_EM, heroCapBand, heroWordEm } from "@/lib/hero-fit";
+import { HERO_CAP_EM, heroCapBand, heroWordEm } from "@/lib/hero-fit";
 import { HERO_PIN_SVH } from "@/lib/motion/tokens";
 
 // The eyebrow reads "{role} — {city}, {country}".
@@ -28,9 +28,13 @@ const { head: HEAD } = PORTRAIT;
 /** The metrics hero.css lays the name, the bust rig and the lower third out with (see the top of hero.css). */
 const NAME_METRICS: CssVars = {
   "--wayne-em-112": heroWordEm("WAYNE", "112"),
-  "--rondina-em-75": heroWordEm("RONDINA", "75", HERO_PHONE_TRACKING_EM),
   "--rondina-em-112": heroWordEm("RONDINA", "112"),
-  "--hero-track-phone": `${HERO_PHONE_TRACKING_EM}em`,
+  // Phones: each word's bare advance in the narrow cut, and the gaps between its letters that hero.css
+  // tracks it out over.
+  "--wayne-adv-75": heroWordEm("WAYNE", "75", 0),
+  "--rondina-adv-75": heroWordEm("RONDINA", "75", 0),
+  "--wayne-gaps": FIRST_NAME.length - 1,
+  "--rondina-gaps": LAST_NAME.length - 1,
   "--cap-em": HERO_CAP_EM,
   "--cap-over": CAP_BAND.over,
   "--cap-under": CAP_BAND.under,
@@ -95,8 +99,10 @@ function DotLayer({ id }: DotLayerProps) {
  * share one stacking context (.hero-name), back to front: WAYNE, the far dots, the bust (HeroPortrait,
  * whose black tee dissolves into the x-ray's bone dots), the near dots, RONDINA; the letterbox bars
  * cover everything. The dot layers are tiny baked PNGs (scripts/assets/build-dissolve.mts) that load
- * after the photo. hero.css holds the geometry and HeroMotion the scroll moves. Phones centre the lower
- * third under the centred name (W24).
+ * after the photo. hero.css holds the geometry and HeroMotion the scroll moves. Phones (below lg) are a
+ * poster (Wayne's W27): the one-line eyebrow, the name stacked above the head with each word tracked
+ * out to the full width, and "See the work" at the screen's foot; the status, the lead, the second
+ * CTA and the socials are left to Contact and the footer there.
  */
 export function Hero() {
   const { client, team } = EDITIONS;
@@ -115,17 +121,17 @@ export function Hero() {
         <div aria-hidden data-hero-bar="" className="absolute inset-x-0 bottom-0 z-20 h-(--lb) origin-bottom bg-letterbox" />
 
         <div className="hero-frame @container mx-auto flex w-full flex-1 flex-col" style={NAME_METRICS}>
-          {/* Fragment Mono swaps in over an Arial fallback about 30% wider, so these lines break the
-              same way in both faces (no re-wrap, no layout shift): the role splits below sm, the
-              status reserves two lines below sm, and the two only share a row from lg. */}
+          {/* Fragment Mono swaps in over an Arial fallback about 30% wider, so below lg the eyebrow
+              never wraps (no re-wrap, no layout shift). The status shows from lg; phones read it in
+              Contact. The two only share a row from lg. */}
           <div className="relative z-10 flex flex-col gap-y-1 font-mono text-mono leading-5 lg:flex-row lg:items-center lg:gap-x-6">
-            <p className="text-ash uppercase">
-              <span className="max-sm:block">{SITE.role} —</span> {LOCATION}
+            <p className="text-ash uppercase max-lg:whitespace-nowrap">
+              <span>{SITE.role} —</span> {LOCATION}
             </p>
-            <p className="text-bone max-sm:min-h-10">{SITE.status}</p>
+            <p className="text-bone max-lg:hidden">{SITE.status}</p>
           </div>
 
-          <div className="hero-name mt-6">
+          <div className="hero-name mt-10 lg:mt-6">
             <DotLayer id="far" />
             <HeroPortrait />
             <DotLayer id="near" />
@@ -141,8 +147,9 @@ export function Hero() {
             </h1>
           </div>
 
-          <div className="hero-lower relative z-10 mt-4 flex flex-col gap-4 max-lg:items-center max-lg:text-center sm:mt-6 sm:gap-5 lg:mt-5">
-            <p className="max-w-[34rem] text-body leading-[1.62] text-bone lg:text-body-lg">
+          {/* Phones keep only the primary CTA, at the screen's foot (margin-top: auto). */}
+          <div className="hero-lower relative z-10 flex flex-col gap-4 max-lg:mt-auto max-lg:items-center sm:gap-5 lg:mt-5">
+            <p className="max-w-[34rem] text-body leading-[1.62] text-bone max-lg:hidden lg:text-body-lg">
               <EditionSwap client={client.lead} team={team.lead} />
             </p>
             {/* From xl the CTAs and the socials share one row, even where it runs past the lead's
@@ -162,20 +169,22 @@ export function Hero() {
                     </Button>
                   }
                 />
-                <EditionSwap
-                  client={
-                    <Button href={client.secondaryCta.href} intent="outline" size="lg">
-                      {client.secondaryCta.label}
-                    </Button>
-                  }
-                  team={
-                    <Button href={team.secondaryCta.href} intent="outline" size="lg">
-                      {team.secondaryCta.label}
-                    </Button>
-                  }
-                />
+                <span className="contents max-lg:hidden">
+                  <EditionSwap
+                    client={
+                      <Button href={client.secondaryCta.href} intent="outline" size="lg">
+                        {client.secondaryCta.label}
+                      </Button>
+                    }
+                    team={
+                      <Button href={team.secondaryCta.href} intent="outline" size="lg">
+                        {team.secondaryCta.label}
+                      </Button>
+                    }
+                  />
+                </span>
               </div>
-              <ul aria-label="Profiles" className="hero-socials flex items-center gap-2 max-lg:justify-center">
+              <ul aria-label="Profiles" className="hero-socials flex items-center gap-2 max-lg:hidden">
                 {HERO_SOCIALS.map((social) => (
                   <li key={social.id} className="flex">
                     <SocialCta social={social} variant="tile" />
@@ -194,7 +203,7 @@ export function Hero() {
           </div>
 
           {/* The bottom letterbox bar's height (at least the frame's bottom margin on screens without bars). */}
-          <div aria-hidden className="mt-auto min-h-[max(var(--lb),1.5rem)]" />
+          <div aria-hidden className="min-h-[max(var(--lb),1.5rem)] lg:mt-auto" />
         </div>
       </HeroMotion>
     </section>
