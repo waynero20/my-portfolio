@@ -1,0 +1,178 @@
+/* Services & process styles. Owner: M2c services + stack. */
+
+/* ── Service rows ───────────────────────────────────────────────────────────────────────────────
+   A title rests a step below bone and lifts to bone on hover, keyboard focus and while open. Colour
+   only (180ms), so a row never moves or reflows. No index numbers (Wayne's W12). */
+
+.service-title {
+  font-size: clamp(32px, 5.5vw, 88px);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  color: color-mix(in oklab, var(--bone) 64%, var(--blackout));
+  transition: color var(--dur-micro) var(--ease-settle);
+}
+
+.service-trigger:is(:focus-visible, [aria-expanded="true"]) {
+  .service-title {
+    color: var(--bone);
+  }
+}
+
+/* Hover only where a pointer can hover: on touch, :hover sticks after a tap, and a row tapped closed
+   would still look open. */
+@media (hover: hover) {
+  .service-trigger:hover {
+    .service-title {
+      color: var(--bone);
+    }
+
+    .service-toggle {
+      border-color: color-mix(in oklab, var(--bone) 45%, transparent);
+      color: var(--bone);
+    }
+  }
+}
+
+/* The plus that folds into a minus: two 1.5px bars in a hairline circle. */
+.service-toggle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border: 1px solid var(--hairline);
+  border-radius: 9999px;
+  color: var(--ash);
+  transition:
+    border-color var(--dur-micro) var(--ease-settle),
+    color var(--dur-micro) var(--ease-settle);
+}
+
+.service-toggle-bar {
+  position: absolute;
+  width: 0.875rem;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.service-toggle-bar--v {
+  rotate: 90deg;
+  transition: rotate var(--dur-ui) var(--ease-settle);
+}
+
+.service-trigger:focus-visible .service-toggle {
+  border-color: color-mix(in oklab, var(--bone) 45%, transparent);
+  color: var(--bone);
+}
+
+.service-trigger[aria-expanded="true"] .service-toggle {
+  border-color: color-mix(in oklab, var(--tungsten) 60%, transparent);
+  color: var(--tungsten);
+
+  .service-toggle-bar--v {
+    rotate: 0deg;
+  }
+}
+
+/* The panel's content settles in a beat behind the row opening. */
+.service-panel-body {
+  opacity: 0;
+  translate: 0 -0.5rem;
+  transition:
+    opacity var(--dur-ui) var(--ease-settle),
+    translate var(--dur-ui) var(--ease-settle);
+}
+
+.service-panel[data-open] .service-panel-body {
+  opacity: 1;
+  translate: 0 0;
+  transition-delay: 60ms;
+}
+
+/* ── Process rule ───────────────────────────────────────────────────────────────────────────────
+   The track is a 1px hairline: down the left edge on phones, along the top from lg, where it ends at
+   the last stage's node (PREMIERE), so the drawn filament's brightest point lands on it. The fill is
+   the lit filament ProcessRule scrubs (scaleY / scaleX from 0 to 1); it warms gently toward its tip,
+   so it reads as one filament. Its resting state is fully drawn, and every stage lit, until the
+   scene sets data-armed. */
+
+.process-track {
+  position: absolute;
+  top: 0.4rem;
+  bottom: 0;
+  left: calc(0.5625rem / 2 - 0.5px);
+  width: 1px;
+  background: var(--hairline);
+}
+
+.process-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 0;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--tungsten) 45%, transparent),
+    var(--tungsten)
+  );
+}
+
+@media (min-width: 64rem) {
+  /* The list is four columns with three 2rem gaps; the last node's centre sits 0.28rem into the
+     last column, so the track ends one column width, less that, from the right edge. */
+  .process-track {
+    top: calc(0.5625rem / 2 - 0.5px);
+    right: calc((100% - 3 * 2rem) / 4 - 0.5625rem / 2);
+    bottom: auto;
+    left: 0;
+    width: auto;
+    height: 1px;
+  }
+
+  .process-fill {
+    transform-origin: 0 50%;
+    background: linear-gradient(
+      to right,
+      color-mix(in oklab, var(--tungsten) 45%, transparent),
+      var(--tungsten)
+    );
+  }
+}
+
+/* A 9px node, centred on the track. The blackout ring cuts the track around it. Lit: a tungsten
+   bulb with a soft glow. */
+.process-node {
+  position: absolute;
+  top: 0.125rem;
+  left: 0;
+  width: 0.5625rem;
+  height: 0.5625rem;
+  /* An invisible anchor: process-rule.tsx measures it to place each stage's stop on the rule. No
+     dot is drawn (Wayne's W12: no coloured or status dots); the tag lights instead. */
+  visibility: hidden;
+}
+
+@media (min-width: 64rem) {
+  .process-node {
+    top: 0;
+  }
+}
+
+.process-tag {
+  color: var(--tungsten);
+  transition: color var(--dur-micro) var(--ease-settle);
+}
+
+.process[data-armed] [data-process-step]:not([data-lit]) {
+  .process-tag {
+    color: var(--ash);
+  }
+}
+
+@media (forced-colors: active) {
+  .process-node {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}

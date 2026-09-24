@@ -1,0 +1,186 @@
+/* The x-ray social tile. Owner: M2 hero (W8). These styles belong to the shared primitive
+   ui/social-cta (SocialCta), which the hero's row and the footer both render, so they live apart from
+   any one section's stylesheet. The hero's own placement of the handle is in hero.css (.hero-socials).
+
+   At rest the brand mark (--mark, a mask) is a 1-bit ordered dither of bone dots in --cell px cells,
+   lit from above. Hover or focus develops it like the portrait: the dots coarsen, resolve fine, then
+   the solid mark fades in in its brand colour (data-brand), all within 380ms, and the handle shows in
+   mono under the tile. Motion off: the solid mark and the handle swap in at once. */
+
+.social-xray-mark {
+  position: relative;
+  display: block;
+  flex: none;
+
+  --brand-fill: var(--bone);
+
+  &[data-brand="linkedin"] {
+    --brand-fill: #0a66c2;
+  }
+
+  &[data-brand="facebook"] {
+    --brand-fill: #1877f2;
+  }
+
+  &[data-brand="instagram"] {
+    --brand-fill: linear-gradient(45deg, #feda75 5%, #fa7e1e 28%, #d62976 52%, #962fbf 76%, #4f5bd5 95%);
+  }
+}
+
+.social-xray-dots,
+.social-xray-solid {
+  position: absolute;
+  inset: 0;
+  mask: var(--mark) center / contain no-repeat;
+}
+
+.social-xray-dots {
+  /* One dither cell: a CSS px, or a whole number of device px on the common fractional scales, so the
+     dots stay even instead of moiréing. */
+  --cell: 1px;
+
+  /* A 4×24-cell tile, repeated across: Bayer 4×4 thresholds against a vertical ramp (94% at the top
+     to 58% at the bottom), so the mark reads lit from above, like the portrait's x-ray, while its
+     lower half keeps enough dots to hold the mark's cut-outs (the octocat, Facebook's "f"). */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='24' shape-rendering='crispEdges'%3E%3Cpath fill='%23ede9e3' d='M0 0h4v1H0zM0 1h4v1H0zM0 2h4v1H0zM1 3h3v1H1zM0 4h4v1H0zM0 5h2v1H0zM3 5h1v1H3zM0 6h4v1H0zM1 7h1v1H1zM3 7h1v1H3zM0 8h4v1H0zM0 9h2v1H0zM3 9h1v1H3zM0 10h4v1H0zM1 11h1v1H1zM3 11h1v1H3zM0 12h4v1H0zM1 13h1v1H1zM3 13h1v1H3zM0 14h4v1H0zM1 15h1v1H1zM3 15h1v1H3zM0 16h4v1H0zM1 17h1v1H1zM3 17h1v1H3zM0 18h1v1H0zM2 18h2v1H2zM1 19h1v1H1zM3 19h1v1H3zM0 20h3v1H0zM1 21h1v1H1zM3 21h1v1H3zM0 22h1v1H0zM2 22h2v1H2zM1 23h1v1H1zM3 23h1v1H3z'/%3E%3C/svg%3E")
+    center / calc(var(--cell) * 4) calc(var(--cell) * 24) repeat-x;
+
+  /* Below 1.5dppx a dot is a single device px and a 24px mark's detail drops out between the dots,
+     so a faint solid copy of the mark sits under them and holds the silhouette. From 1.5dppx the
+     dots are two device px and read on their own. */
+  @media (max-resolution: 1.49dppx) {
+    background-color: color-mix(in oklab, var(--bone) 18%, transparent);
+  }
+
+  @media (resolution: 1.25dppx) {
+    --cell: 0.8px;
+  }
+
+  @media (resolution: 1.5dppx) {
+    --cell: calc(4px / 3);
+  }
+
+  @media (resolution: 1.75dppx) {
+    --cell: calc(8px / 7);
+  }
+}
+
+.social-xray-solid {
+  background: var(--brand-fill);
+  opacity: 0;
+  transition: opacity var(--dur-micro) var(--ease-settle);
+}
+
+/* The handle, in mono (the link's accessible name already carries it). Out of the layout until it
+   shows, so it never widens the page. It sits under its own tile: centred, but the row's first tile
+   aligns it to its start edge and the last to its end edge, so it never runs past the row. Only on
+   hover-capable screens or keyboard focus. The hero moves it beside its row from lg (hero.css). */
+.social-xray-tip {
+  --tip-x: -50%;
+  --tip-y: 0%;
+  --tip-rise: -2px;
+
+  position: absolute;
+  top: calc(100% + 0.375rem);
+  left: 50%;
+  z-index: 1;
+  display: none;
+  align-items: center;
+  gap: 0.25rem;
+  height: 1.5rem;
+  padding-inline: 0.5rem;
+  border: 1px solid var(--hairline);
+  border-radius: --theme(--radius-lg);
+  background: var(--booth);
+  color: var(--bone);
+  font-family: --theme(--font-mono inline);
+  font-size: 0.75rem;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  translate: var(--tip-x) calc(var(--tip-y) + var(--tip-rise));
+  transition:
+    opacity var(--dur-micro) var(--ease-settle),
+    translate var(--dur-micro) var(--ease-settle),
+    display var(--dur-micro) allow-discrete;
+
+  li:first-child > .social-xray & {
+    --tip-x: 0%;
+    left: 0;
+  }
+
+  li:last-child > .social-xray & {
+    --tip-x: 0%;
+    right: 0;
+    left: auto;
+  }
+
+  & svg {
+    color: var(--ash);
+  }
+
+  @variant motion-off {
+    transition: none;
+  }
+}
+
+.social-xray:focus-visible .social-xray-tip {
+  display: flex;
+  opacity: 1;
+  --tip-rise: 0px;
+
+  @starting-style {
+    opacity: 0;
+  }
+}
+
+@media (hover: hover) {
+  .social-xray:hover .social-xray-tip {
+    display: flex;
+    opacity: 1;
+    --tip-rise: 0px;
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+}
+
+.social-xray:is(:hover, :focus-visible) {
+  .social-xray-dots {
+    animation: social-xray-develop 240ms both;
+  }
+
+  .social-xray-solid {
+    opacity: 1;
+    transition-delay: 200ms;
+
+    @variant motion-off {
+      transition-delay: 0ms;
+    }
+  }
+}
+
+/* Cells of 4 → 3 → 2 → 1, held (steps) between keyframes: 60ms each. */
+@keyframes social-xray-develop {
+  0% {
+    background-size: calc(var(--cell) * 16) calc(var(--cell) * 96);
+    animation-timing-function: steps(1, jump-end);
+  }
+
+  25% {
+    background-size: calc(var(--cell) * 12) calc(var(--cell) * 72);
+    animation-timing-function: steps(1, jump-end);
+  }
+
+  50% {
+    background-size: calc(var(--cell) * 8) calc(var(--cell) * 48);
+    animation-timing-function: steps(1, jump-end);
+  }
+
+  75%,
+  100% {
+    background-size: calc(var(--cell) * 4) calc(var(--cell) * 24);
+  }
+}

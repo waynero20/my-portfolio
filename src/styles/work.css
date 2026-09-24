@@ -1,0 +1,283 @@
+/* Work styles. Owner: M2b work.
+
+   The hand-off (Ruling R26; geometry in src/lib/work/flood.ts, scenes in useReelScenes). Each reel's
+   brand layer is clipped to its lit screen (plus a 12px bezel and the logo plate) and the clip opens
+   to the whole stage as the room floods. Three registered phases drive it, tweened by the scene on
+   the layer, the spill and the edge:
+     --lit      0 → 1  the small screen lights up in place (a later reel rises unlit, so invisibly)
+     --flood    0 → 1  the room floods out of the screen
+     --unflood  0 → 1  the last reel shrinks back to its screen before it leaves
+   They (and --shut, derived from them) do not inherit, so a frame's change restyles those three
+   elements only. Their initial values are the flooded, lit room: with no JS and under reduced motion
+   every reel is simply shown. In cinema the stages stay hidden until the director has built and
+   settled them (data-directed), so a load at a #reel-… hash never flashes a later reel's default,
+   flooded room over the one it landed on. useReelScenes measures the insets into
+   --ct/--cr/--cb/--cl on the stage. */
+
+@property --flood {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+@property --lit {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+@property --unflood {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --shut {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+.reel-layer,
+.reel-spill,
+.reel-edge {
+  /* How closed the room is: 0 flooded, 1 only the lit screen. */
+  --shut: calc(1 - var(--flood) * (1 - var(--unflood)));
+}
+
+.reel-layer {
+  opacity: var(--lit);
+  clip-path: inset(
+    calc(var(--ct, 0px) * var(--shut)) calc(var(--cr, 0px) * var(--shut)) calc(var(--cb, 0px) * var(--shut))
+      calc(var(--cl, 0px) * var(--shut)) round calc(--theme(--radius-screen inline) * var(--shut))
+  );
+}
+
+/* The flooding room's rim, on the clip's exact box: a hairline and a soft shadow cast outward onto
+   the room underneath, so a room flooding over another light one reads as a surface sliding over
+   it rather than two brands' text spliced at an invisible seam. Cinema only (reel.tsx); at the
+   full flood its box is the stage and the stage's overflow clip hides it. */
+.reel-edge {
+  inset: calc(var(--ct, 0px) * var(--shut)) calc(var(--cr, 0px) * var(--shut)) calc(var(--cb, 0px) * var(--shut))
+    calc(var(--cl, 0px) * var(--shut));
+  border-radius: calc(--theme(--radius-screen inline) * var(--shut));
+  opacity: var(--lit);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.1),
+    0 32px 96px -16px rgb(0 0 0 / 0.42),
+    0 0 48px rgb(0 0 0 / 0.16);
+}
+
+/* The spill: the screen's two edge colours glowing out of its left and right edges into the dark
+   (the brand's static pair, or live ambilight colours useAmbilight writes on the stage). It sits
+   under the layer, outside its clip, and fades out as the room floods. */
+.reel-spill {
+  opacity: calc(var(--lit) * var(--shut));
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: calc(var(--ct, 0px) - 6%);
+    bottom: calc(var(--cb, 0px) - 6%);
+    width: 32%;
+  }
+
+  &::before {
+    left: calc(var(--cl, 0px) - 16%);
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--reel-spill-l) 32%, transparent), transparent);
+  }
+
+  &::after {
+    right: calc(var(--cr, 0px) - 16%);
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--reel-spill-r) 32%, transparent), transparent);
+  }
+}
+
+/* In cinema a later reel lights up and floods over the previous brand room, where a coloured glow
+   would only muddy that reel's text: its spill shows only as the last reel hands the room back to
+   the night (--unflood). Reel 1 rises over the night and keeps its spill. */
+@variant cinema {
+  [data-reel-index]:not([data-reel-index="0"]) > [data-reel-stage] > .reel-spill {
+    opacity: calc(var(--shut) * var(--unflood));
+  }
+}
+
+/* The stages overlap in cinema, so only the lit, uncovered part of the top layer takes the pointer:
+   the stage boxes let it through (reel.tsx), the layer catches it, and clip-path clips hit-testing
+   too, so the covered reel's CTA and pause button stay clickable around the next reel's lit screen.
+   A reel rising unlit or already covered takes none. A covered reel is hidden outright: it sits
+   fully under the next room, and the last reel's un-flood must reveal night, not the reel before. */
+.reel-layer {
+  pointer-events: auto;
+}
+
+[data-unlit] .reel-layer,
+[data-covered] .reel-layer {
+  pointer-events: none;
+}
+
+[data-covered] > [data-reel-stage] {
+  opacity: 0;
+}
+
+/* Before the director has run, the cinema stages would all paint their default flooded room, the
+   later ones stacked over the earlier (a load at #reel-tampus showed TutorLoop's room). Hidden until
+   useReelScenes sets data-directed on Work's root; reel 1 is below the fold on a normal load, so
+   nothing visible waits. Should the scripts never run, the stages show anyway after 4s. */
+@variant cinema {
+  [data-reels]:not([data-directed]) [data-reel-stage] {
+    visibility: hidden;
+    animation: reel-stage-failsafe 1ms 4s both;
+  }
+}
+
+@keyframes reel-stage-failsafe {
+  to {
+    visibility: visible;
+  }
+}
+
+/* The overlay photo behind the screen, faded out toward its edges so it reads as a wall, not a card. */
+.reel-set-wall {
+  mask-image: radial-gradient(closest-side, #000 45%, transparent);
+}
+
+/* The re-cast title (Wayne's W20). The box reserves one line at the size cap (--title-h), so a re-cast
+   never moves anything around it. The h3 stacks its two faces in one grid cell on a shared baseline:
+   the night face (the heading's text) and the brand face (a hidden copy in the brand's own display
+   face). createCast() measures each face's fit: font-size = --fit (night) or --fit-brand (brand) ×
+   the box width keeps each face as wide as its box, up to the cap. The fallback --fit holds a
+   15-character night title inside a phone-width box until the measurement lands. */
+.reel-title-box {
+  --title-h: clamp(48px, min(6vw, 10svh), 104px);
+  container-type: inline-size;
+  contain: layout;
+  display: flex;
+  align-items: flex-end;
+  height: calc(var(--title-h) * 1.1);
+}
+
+.reel-title {
+  display: grid;
+  align-items: baseline;
+  font-size: min(var(--title-h), calc(var(--fit, 0.12) * 100cqi));
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.reel-title > [data-title-face] {
+  grid-area: 1 / 1;
+}
+
+/* The brand face stays out of the layout (and its font unfetched) until createCast() has loaded it,
+   measured it and armed the title. */
+.reel-title-brand {
+  display: none;
+  font-family: var(--title-ff), sans-serif;
+  font-size: min(var(--title-h), calc(var(--fit-brand, var(--fit, 0.12)) * 100cqi));
+  font-weight: var(--title-weight);
+  font-style: var(--title-style);
+  font-variation-settings: normal;
+  letter-spacing: var(--title-tracking);
+  text-transform: var(--title-case);
+  user-select: none;
+}
+
+/* Armed, the re-cast is --cast from 0 (night) to 1 (brand), tweened by createCast(): a soft-edged
+   wipe from left to right in which the brand face takes the night face's place, their two masks
+   adding up to one at every point. Each face bleeds past its box by --bleed (padding, cancelled by an
+   equal negative margin), so the masks and the gold fill reach the glyphs' overhangs without moving
+   the night face. The brand face's bottom margin also takes it out of the row's depth below the
+   baseline, so the night face keeps its exact place in the box. */
+.reel-title[data-cast-armed] {
+  > [data-title-face] {
+    --bleed: calc(var(--title-h) * 0.3);
+    padding: var(--bleed);
+    margin: calc(-1 * var(--bleed));
+  }
+
+  > .reel-title-night {
+    mask-image: linear-gradient(90deg, transparent calc(var(--cast, 0) * 130% - 30%), #000 calc(var(--cast, 0) * 130%));
+  }
+
+  > .reel-title-brand {
+    display: block;
+    margin-bottom: calc(-1 * var(--bleed) - var(--title-h));
+    mask-image: linear-gradient(90deg, #000 calc(var(--cast, 0) * 130% - 30%), transparent calc(var(--cast, 0) * 130%));
+  }
+}
+
+/* A brand title gradient (Tampus gold) fills the glyphs of both faces, from the text's start to its
+   end (the stops skip the bleed). Forced colours get plain system text. */
+.reel-title-gradient > [data-title-face] {
+  background-image: linear-gradient(
+    90deg,
+    var(--title-from) var(--bleed, 0px),
+    var(--title-to) calc(100% - var(--bleed, 0px))
+  );
+  background-clip: text;
+  color: transparent;
+
+  @media (forced-colors: active) {
+    background-image: none;
+    color: CanvasText;
+  }
+}
+
+/* The phone showcase (the phone-cinema variant: phones and portrait tablets tall enough for it; Wayne's
+   W17/W19). The same hand-off as desktop, one reel per screen. Its stage is 100lvh (reel.tsx), so it
+   still fills the screen once the browser's toolbar collapses, and the reel lives in the top 100svh
+   (the zone), which the toolbar never covers; nothing is laid out against the toolbar, so its moves
+   shift nothing. The screen sits at the same place in every reel, so the next one lights up right over
+   it: the zone reserves --ph-above for the slate and title (one line each) and --ph-below for the copy
+   under the screen of the longest reel (Horizon, whose CTA wraps; an outcome line, once PROJECTS has
+   them, needs its height added here), gives the 16:10 screen the rest (at most the column's width) and
+   centres that block, so a reel with less to say just leaves more room at its foot. Should a reel
+   still not fit (a large text setting), the scene hands the reels back to the flow layout
+   (html[data-reels-flow]). */
+@variant phone-cinema {
+  .reel-zone {
+    --ph-above: 5.9rem;
+    --ph-below: 19.5rem;
+    --ph-pad: 1.5rem;
+    --ph-screen-w: min(
+      100vw - 2.5rem,
+      42rem,
+      (100svh - var(--ph-above) - var(--ph-below) - 2 * var(--ph-pad)) * 1.6
+    );
+
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    height: 100svh;
+    max-width: 42rem;
+    padding-block: max(var(--ph-pad), (100svh - var(--ph-above) - var(--ph-below) - var(--ph-screen-w) / 1.6) / 2)
+      var(--ph-pad);
+  }
+
+  /* As on desktop, reels 2… light up over another brand's room, so their spill waits for the un-flood. */
+  [data-reel-index]:not([data-reel-index="0"]) > [data-reel-stage] > .reel-spill {
+    opacity: calc(var(--shut) * var(--unflood));
+  }
+
+  [data-reels]:not([data-directed]) [data-reel-stage] {
+    visibility: hidden;
+    animation: reel-stage-failsafe 1ms 4s both;
+  }
+
+  /* The stack stays on one line: the scene moves the chips that do not fit out of sight (still read
+     out) and unhides a "+N" chip that counts them. */
+  [data-chip][data-over] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  [data-chip-more] > [data-count]::before {
+    content: "+" attr(data-count);
+  }
+}

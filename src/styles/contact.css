@@ -1,0 +1,171 @@
+/* Contact and footer (closing frame) styles. Owner: M2d contact + footer.
+
+   Contact is one centred screen (Wayne's W14/W15: no dial pad, no socials): the eyebrow, then the email
+   and the phone number as the two largest lines their column allows, then the availability line
+   (no Copy buttons, W16). The lines drift in opposite directions as the section scrolls through (the email leftward,
+   the number rightward: the hero's WAYNE/RONDINA move, answered), on a CSS view timeline. They sit
+   exactly centred when the section is centred on screen. Reduced motion or ?motion=off: no drift.
+
+   Sizes are fitted to measured widths in the text face (Chrome, the weights and tracking below):
+   "waynerondina20@gmail.com" is 12.4em at 460, "waynerondina20" 7.25em; "0949 871 8967" is 6.25em at
+   540 (-0.03em), "8967" and "0949" 2.29em. Each size is also capped by the screen height, so the
+   whole screen fits 390×844 and 360×780 on phones and 1280×720 to 1920×1080 on desktop. */
+
+/* The drift's section never widens the page. */
+.contact-section {
+  overflow-x: clip;
+}
+
+.contact-screen {
+  gap: clamp(1rem, 3svh, 2.5rem);
+  padding-block: clamp(1.5rem, 4svh, 3.5rem);
+}
+
+.contact-lines {
+  gap: clamp(1.25rem, 4svh, 3.25rem);
+}
+
+/* ---------------------------------------------------------------- the two lines */
+
+.contact-line {
+  display: block;
+  width: fit-content;
+  max-width: none;
+  margin-inline: auto;
+  color: var(--bone);
+  text-align: center;
+  white-space: nowrap;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: max(2px, 0.035em);
+  text-underline-offset: 0.14em;
+  transition:
+    color var(--dur-ui) var(--ease-settle),
+    text-decoration-color var(--dur-ui) var(--ease-settle);
+
+  &:hover {
+    text-decoration-color: var(--tungsten);
+  }
+}
+
+/* The email: the username in bone, the domain a step down in ash (7.4:1). Phones set the domain on
+   its own line, sized by the username. */
+.contact-email {
+  font-size: min(calc(100cqi / 7.4), 11svh);
+  font-weight: 460;
+  line-height: 1;
+  letter-spacing: -0.035em;
+
+  @variant sm {
+    font-size: min(calc(100cqi / 12.6), 8.5rem, 14svh);
+  }
+}
+
+.contact-email-user,
+.contact-email-domain {
+  display: block;
+
+  @variant sm {
+    display: inline;
+  }
+}
+
+.contact-email-domain {
+  color: var(--ash);
+  transition: color var(--dur-ui) var(--ease-settle);
+
+  .contact-email:hover & {
+    color: var(--bone);
+  }
+}
+
+/* The number: the colossal line. Phones stack its three groups. Proportional figures at wght 540. */
+.contact-phone {
+  font-size: min(calc(100cqi / 2.4), 11.5svh);
+  font-weight: 540;
+  line-height: 0.84;
+  letter-spacing: -0.03em;
+
+  @variant sm {
+    font-size: min(calc(100cqi / 6.32), 15rem, 24svh);
+  }
+}
+
+.contact-phone-group {
+  display: block;
+
+  & + & {
+    margin-top: 0.14em;
+  }
+
+  @variant sm {
+    display: inline;
+
+    & + & {
+      margin-top: 0;
+      margin-left: 0.24em;
+    }
+  }
+}
+
+@supports (text-box: trim-both cap alphabetic) {
+  .contact-phone {
+    text-box: trim-both cap alphabetic;
+  }
+}
+
+/* ---------------------------------------------------------------- the drift */
+
+/* Each line drifts in as it enters the screen and out as it leaves, and holds exactly centred while it
+   is fully in view, so wherever the section lands (the hero's "Dial me in" puts its top at y=0) both
+   lines read centred. The email comes in from the right and leaves left; the number the reverse. */
+@supports (animation-timeline: view()) {
+  .contact-line {
+    animation: contact-drift linear both;
+    animation-timeline: view();
+
+    @variant motion-off {
+      animation: none;
+    }
+  }
+
+  [data-drift="left"] {
+    --drift: 9%;
+  }
+
+  [data-drift="right"] {
+    --drift: -9%;
+  }
+}
+
+@keyframes contact-drift {
+  entry 0% {
+    translate: var(--drift) 0;
+  }
+
+  entry 100%,
+  exit 0% {
+    translate: 0 0;
+  }
+
+  exit 100% {
+    translate: calc(var(--drift) * -1) 0;
+  }
+}
+
+/* ---------------------------------------------------------------- closing frame (footer) */
+
+/* "Let’s make the next one." (the end-credits roll and Rewind were removed, W13). */
+.credits-final {
+  font-size: clamp(2.75rem, 9vw, 9.5rem);
+  font-weight: 460;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+@supports (text-box: trim-both cap alphabetic) {
+  .credits-final {
+    text-box: trim-both cap alphabetic;
+  }
+}

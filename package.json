@@ -1,1 +1,60 @@
-{"name":"portfolio","version":"0.1.0","private":true,"scripts":{"dev":"next dev","build":"next build","start":"next start","lint":"next lint"},"dependencies":{"@next/third-parties":"^16.2.1","@tailwindcss/postcss":"^4.2.2","@types/node":"^25.5.0","@types/react":"^19.2.14","@types/react-dom":"^19.2.3","framer-motion":"^12.38.0","gsap":"^3.14.2","lenis":"^1.3.21","next":"latest","postcss":"^8.5.8","react":"latest","react-dom":"latest","tailwindcss":"^4.2.2","typescript":"^6.0.2"}}
+{
+  "name": "portfolio",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit && tsc -p scripts --noEmit",
+    "assets": "npm run assets:fonts && npm run assets:titles && npm run assets:portrait && npm run assets:cloud && npm run assets:video && npm run assets:ambi && npm run assets:manifest && npm run assets:logos && npm run assets:tools",
+    "assets:fonts": "node scripts/assets/build-fonts.mts",
+    "assets:titles": "node scripts/assets/build-title-fonts.mts",
+    "assets:portrait": "node scripts/assets/build-portrait.mts",
+    "assets:cloud": "node scripts/assets/build-cloud.mts",
+    "assets:video": "node scripts/assets/encode-videos.mts",
+    "assets:ambi": "node scripts/assets/sample-ambilight.mts",
+    "assets:manifest": "node scripts/assets/asset-manifest.mts",
+    "assets:images": "node scripts/assets/build-images.mts",
+    "assets:logos": "node scripts/assets/build-logo-marks.mts",
+    "assets:tools": "node scripts/assets/build-tool-icons.mts",
+    "assets:atmosphere": "node scripts/assets/bake-atmosphere.mts",
+    "assets:og": "node scripts/assets/build-og-image.mts",
+    "perf:budget": "node scripts/perf/check-budgets.mts",
+    "perf:lh": "node scripts/perf/lighthouse.mts",
+    "qa:flash": "node scripts/qa/check-flash.mts",
+    "verify": "npm run typecheck && npm run lint && npm run build"
+  },
+  "dependencies": {
+    "@gsap/react": "2.1.2",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "gsap": "^3.14.2",
+    "lenis": "^1.3.21",
+    "lucide-react": "1.47.0",
+    "next": "16.3.6",
+    "ogl": "1.0.11",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "sharp": "^0.35.4",
+    "tailwind-merge": "3.7.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/fontkit": "2.0.9",
+    "@types/node": "^22",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.6",
+    "fontkit": "2.0.4",
+    "postcss": "^8.5.28",
+    "simple-icons": "16.32.0",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^6.0.2"
+  }
+}
