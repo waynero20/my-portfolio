@@ -32,12 +32,35 @@ const pool = new Set<PoolMember>();
 let lastScrollY = 0;
 let scrollDirection: 1 | -1 = 1;
 
-function rebalancePool(): void {
+/** Capture: it runs before ScrollTrigger's own scroll handler (on window, bubbling). */
+const SCROLL_LISTENER = { passive: true, capture: true } as const;
+
+/**
+ * The scroll direction pickArmed loads ahead in. It is read here, before ScrollTrigger's handler
+ * writes the scenes' styles for this scroll: read from rebalancePool, which runs inside the scenes'
+ * updates, scrollY forced a style and layout pass on every frame of a light-up or a flood.
+ */
+function trackDirection(): void {
   const y = window.scrollY;
-  if (y !== lastScrollY) {
-    scrollDirection = y > lastScrollY ? 1 : -1;
-    lastScrollY = y;
+  if (y === lastScrollY) return;
+  scrollDirection = y > lastScrollY ? 1 : -1;
+  lastScrollY = y;
+}
+
+function joinPool(member: PoolMember): void {
+  if (pool.size === 0) {
+    lastScrollY = window.scrollY;
+    window.addEventListener("scroll", trackDirection, SCROLL_LISTENER);
   }
+  pool.add(member);
+}
+
+function leavePool(member: PoolMember): void {
+  pool.delete(member);
+  if (pool.size === 0) window.removeEventListener("scroll", trackDirection, SCROLL_LISTENER);
+}
+
+function rebalancePool(): void {
   const armed = new Set(pickArmed([...pool], scrollDirection));
   for (const member of pool) member.setArmed(armed.has(member.index));
 }
@@ -143,7 +166,7 @@ export function useReelVideo(
       rebalancePool();
       sync();
     };
-    pool.add(member);
+    joinPool(member);
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -158,7 +181,7 @@ export function useReelVideo(
     return () => {
       unsubscribe();
       observer.disconnect();
-      pool.delete(member);
+      leavePool(member);
       member.setArmed(false);
       rebalancePool();
     };

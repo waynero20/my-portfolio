@@ -38,9 +38,9 @@ export const monoFont = Fragment_Mono({
 
 // The reel titles' brand faces (Wayne's W20): each reel's title is re-cast, once its flood completes,
 // in the display face of the brand's own site (PROJECTS[].titleFont), subset to that title's glyphs
-// (npm run assets:titles; 1–2 KB each). None is preloaded or needed for first paint: a face is only
-// used once createCast() arms its title, as the reel comes near, and until it has loaded the title
-// keeps its night face, so no fallback metrics are needed either.
+// (npm run assets:titles; 1–2 KB each). None is preloaded or needed for first paint: createCasts()
+// loads them all together once the page is idle and only then arms the titles, and until a face has
+// loaded its title keeps the night face, so no fallback metrics are needed either.
 export const titleBloomFont = localFont({
   src: "../assets/fonts/titles/bloom.woff2",
   variable: "--ff-title-bloom",

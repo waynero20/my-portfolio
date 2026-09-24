@@ -25,7 +25,7 @@ import {
   svhToPx,
 } from "@/lib/work/flood";
 import { reelScreens } from "@/lib/work/screens";
-import { createCast } from "@/lib/work/typecast";
+import { createCasts } from "@/lib/work/typecast";
 
 /**
  * The phases track the scroll exactly (scrub: true), not through SCRUB's 0.6s smoothing: Lenis
@@ -86,6 +86,8 @@ interface Reel {
   /** The opacities last written on those pieces. */
   fades: ReelFades;
   geometry: ReelGeometry;
+  /** The re-cast title (data-typecast); direct() casts every reel's title together (createCasts). */
+  title: HTMLElement | null;
   cast: Cast | null;
   lit: number;
   flood: number;
@@ -109,15 +111,20 @@ function reelMode({ reduced, cinema, phoneCinema }: SceneFlags): ReelMode {
   return phoneCinema ? "phone" : "flow";
 }
 
-/** The last two scroll positions, for scrollJump(); passive, and only while a scene runs. */
+/**
+ * The last two scroll positions, for scrollJump(); passive, and only while a scene runs. A capture
+ * listener, so it reads scrollY before ScrollTrigger's scroll handler (on window, bubbling) has written
+ * this scroll's phases: read after those writes, scrollY forces a style and layout pass.
+ */
 function recordScroll(): { record: ScrollRecord; stop: () => void } {
   const record: ScrollRecord = { previous: window.scrollY, last: window.scrollY };
+  const listener = { passive: true, capture: true } as const;
   const onScroll = () => {
     record.previous = record.last;
     record.last = window.scrollY;
   };
-  window.addEventListener("scroll", onScroll, { passive: true });
-  return { record, stop: () => window.removeEventListener("scroll", onScroll) };
+  window.addEventListener("scroll", onScroll, listener);
+  return { record, stop: () => window.removeEventListener("scroll", onScroll, listener) };
 }
 
 function readReel(article: HTMLElement, total: number, mode: ReelMode): Reel | null {
@@ -146,7 +153,8 @@ function readReel(article: HTMLElement, total: number, mode: ReelMode): Reel | n
     bezel: mode === "phone" ? PHONE_BEZEL_PX : SCREEN_BEZEL_PX,
     fades: NO_FADES,
     geometry: mode === "phone" ? reelPhoneGeometry(index, total) : reelGeometry(index, total),
-    cast: title ? createCast(title, { reduced: mode === "reduced" }) : null,
+    title,
+    cast: null,
     // The states the phase tweens render first: in cinema every stage but the first rises unlit.
     lit: cinema && index > 0 ? 0 : 1,
     flood: mode === "reduced" ? 1 : 0,
@@ -234,6 +242,11 @@ function fitChips(list: HTMLElement): void {
 function direct(root: HTMLElement, mode: ReelMode): () => void {
   const articles = Array.from(root.querySelectorAll<HTMLElement>("article[data-reel]"));
   const reels = articles.flatMap((article) => readReel(article, articles.length, mode) ?? []);
+  const titled = reels.flatMap((reel) => (reel.title ? [{ reel, title: reel.title }] : []));
+  const casts = createCasts(titled.map(({ title }) => title), { reduced: mode === "reduced" });
+  titled.forEach(({ reel }, i) => {
+    reel.cast = casts[i];
+  });
   const scroll = mode === "reduced" ? null : recordScroll();
   const scrubbed: ScrollTrigger[] = [];
   // The phone showcase runs the cinema scene, on its own geometry and bezel (readReel).
@@ -288,12 +301,20 @@ function direct(root: HTMLElement, mode: ReelMode): () => void {
     update();
   };
 
+  // The viewport's height for isJump, kept from resize events: read inside a scrub's update, after the
+  // phases before it had written theirs, innerHeight forced a style and layout pass on every frame.
+  let viewportHeight = window.innerHeight;
+  const onResize = () => {
+    viewportHeight = window.innerHeight;
+  };
+  window.addEventListener("resize", onResize, { passive: true });
+
   const isJump = (self: ScrollTrigger) =>
     scroll !== null &&
     isTeleport({
       jump: scrollJump(self.scroll(), scroll.record),
       velocity: self.getVelocity(),
-      viewportHeight: window.innerHeight,
+      viewportHeight,
     });
 
   /**
@@ -465,6 +486,7 @@ function direct(root: HTMLElement, mode: ReelMode): () => void {
 
   return () => {
     scroll?.stop();
+    window.removeEventListener("resize", onResize);
     for (const stop of focusHandlers) stop();
     if (chipLists.length > 0) ScrollTrigger.removeEventListener("refresh", fitAllChips);
     chipLists.forEach(unfitChips);
