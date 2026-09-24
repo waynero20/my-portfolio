@@ -1,0 +1,296 @@
+{
+  "bloom": {
+    "w": 1280,
+    "h": 800,
+    "duration": 24.933,
+    "fit": "cover",
+    "posters": {
+      "720": {
+        "avif": "/posters/bloom-720.avif",
+        "webp": "/posters/bloom-720.webp"
+      },
+      "1280": {
+        "avif": "/posters/bloom-1280.avif",
+        "webp": "/posters/bloom-1280.webp"
+      }
+    },
+    "sources": [
+      {
+        "src": "/videos/bloom-1280.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.05M.08\"",
+        "width": 1280,
+        "codec": "av1"
+      },
+      {
+        "src": "/videos/bloom-720.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.04M.08\"",
+        "width": 720,
+        "codec": "av1"
+      },
+      {
+        "src": "/videos/bloom-1280.h264.mp4",
+        "type": "video/mp4; codecs=\"avc1.640020\"",
+        "width": 1280,
+        "codec": "h264"
+      },
+      {
+        "src": "/videos/bloom-720.h264.mp4",
+        "type": "video/mp4; codecs=\"avc1.64001E\"",
+        "width": 720,
+        "codec": "h264"
+      }
+    ]
+  },
+  "legacy": {
+    "w": 1280,
+    "h": 800,
+    "duration": 30.833,
+    "fit": "cover",
+    "posters": {
+      "720": {
+        "avif": "/posters/legacy-720.avif",
+        "webp": "/posters/legacy-720.webp"
+      },
+      "1280": {
+        "avif": "/posters/legacy-1280.avif",
+        "webp": "/posters/legacy-1280.webp"
+      }
+    },
+    "sources": [
+      {
+        "src": "/videos/legacy-1280.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.05M.08\"",
+        "width": 1280,
+        "codec": "av1"
+      },
+      {
+        "src": "/videos/legacy-720.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.04M.08\"",
+        "width": 720,
+        "codec": "av1"
+      },
+      {
+        "src": "/videos/legacy-1280.h264.mp4",
+        "type": "video/mp4; codecs=\"avc1.640020\"",
+        "width": 1280,
+        "codec": "h264"
+      },
+      {
+        "src": "/videos/legacy-720.h264.mp4",
+        "type": "video/mp4; codecs=\"avc1.64001E\"",
+        "width": 720,
+        "codec": "h264"
+      }
+    ]
+  },
+  "tampus": {
+    "w": 1280,
+    "h": 668,
+    "duration": 18.966,
+    "fit": "contain",
+    "posters": {
+      "720": {
+        "avif": "/posters/tampus-720.avif",
+        "webp": "/posters/tampus-720.webp"
+      },
+      "1280": {
+        "avif": "/posters/tampus-1280.avif",
+        "webp": "/posters/tampus-1280.webp"
+      }
+    },
+    "sources": [
+      {
+        "src": "/videos/tampus-1280.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.05M.08\"",
+        "width": 1280,
+        "codec": "av1"
+      },
+      {
+        "src": "/videos/tampus-720.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.01M.08\"",
+        "width": 720,
+        "codec": "av1"
+      },
+      {
+        "src": "/videos/tampus-1280.h264.mp4",
+        "type": "video/mp4; codecs=\"avc1.64001F\"",
+        "width": 1280,
+        "codec": "h264"
+      },
+      {
+        "src": "/videos/tampus-720.h264.mp4",
+        "type": "video/mp4; codecs=\"avc1.64001E\"",
+        "width": 720,
+        "codec": "h264"
+      }
+    ]
+  },
+  "tutorloop": {
+    "w": 1280,
+    "h": 800,
+    "duration": 30.5,
+    "fit": "cover",
+    "posters": {
+      "720": {
+        "avif": "/posters/tutorloop-720.avif",
+        "webp": "/posters/tutorloop-720.webp"
+      },
+      "1280": {
+        "avif": "/posters/tutorloop-1280.avif",
+        "webp": "/posters/tutorloop-1280.webp"
+      }
+    },
+    "sources": [
+      {
+        "src": "/videos/tutorloop-1280.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.05M.08\"",
+        "width": 1280,
+        "codec": "av1"
+      },
+      {
+        "src": "/videos/tutorloop-720.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.04M.08\"",
+        "width": 720,
+        "codec": "av1"
+      },
+      {
+        "src": "/videos/tutorloop-1280.h264.mp4",
+        "type": "video/mp4; codecs=\"avc1.640020\"",
+        "width": 1280,
+        "codec": "h264"
+      },
+      {
+        "src": "/videos/tutorloop-720.h264.mp4",
+        "type": "video/mp4; codecs=\"avc1.64001E\"",
+        "width": 720,
+        "codec": "h264"
+      }
+    ]
+  },
+  "horizon": {
+    "w": 1280,
+    "h": 670,
+    "duration": 20.2,
+    "fit": "contain",
+    "posters": {
+      "720": {
+        "avif": "/posters/horizon-720.avif",
+        "webp": "/posters/horizon-720.webp"
+      },
+      "1280": {
+        "avif": "/posters/horizon-1280.avif",
+        "webp": "/posters/horizon-1280.webp"
+      }
+    },
+    "sources": [
+      {
+        "src": "/videos/horizon-1280.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.05M.08\"",
+        "width": 1280,
+        "codec": "av1"
+      },
+      {
+        "src": "/videos/horizon-720.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.01M.08\"",
+        "width": 720,
+        "codec": "av1"
+      },
+      {
+        "src": "/videos/horizon-1280.h264.mp4",
+        "type": "video/mp4; codecs=\"avc1.64001F\"",
+        "width": 1280,
+        "codec": "h264"
+      },
+      {
+        "src": "/videos/horizon-720.h264.mp4",
+        "type": "video/mp4; codecs=\"avc1.64001E\"",
+        "width": 720,
+        "codec": "h264"
+      }
+    ]
+  },
+  "matchme": {
+    "w": 1280,
+    "h": 800,
+    "duration": 28.266,
+    "fit": "cover",
+    "posters": {
+      "720": {
+        "avif": "/posters/matchme-720.avif",
+        "webp": "/posters/matchme-720.webp"
+      },
+      "1280": {
+        "avif": "/posters/matchme-1280.avif",
+        "webp": "/posters/matchme-1280.webp"
+      }
+    },
+    "sources": [
+      {
+        "src": "/videos/matchme-1280.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.05M.08\"",
+        "width": 1280,
+        "codec": "av1"
+      },
+      {
+        "src": "/videos/matchme-720.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.04M.08\"",
+        "width": 720,
+        "codec": "av1"
+      },
+      {
+        "src": "/videos/matchme-1280.h264.mp4",
+        "type": "video/mp4; codecs=\"avc1.640020\"",
+        "width": 1280,
+        "codec": "h264"
+      },
+      {
+        "src": "/videos/matchme-720.h264.mp4",
+        "type": "video/mp4; codecs=\"avc1.64001E\"",
+        "width": 720,
+        "codec": "h264"
+      }
+    ]
+  },
+  "pickanddink": {
+    "w": 1280,
+    "h": 800,
+    "duration": 22.7,
+    "fit": "cover",
+    "posters": {
+      "720": {
+        "avif": "/posters/pickanddink-720.avif",
+        "webp": "/posters/pickanddink-720.webp"
+      },
+      "1280": {
+        "avif": "/posters/pickanddink-1280.avif",
+        "webp": "/posters/pickanddink-1280.webp"
+      }
+    },
+    "sources": [
+      {
+        "src": "/videos/pickanddink-1280.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.05M.08\"",
+        "width": 1280,
+        "codec": "av1"
+      },
+      {
+        "src": "/videos/pickanddink-720.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.04M.08\"",
+        "width": 720,
+        "codec": "av1"
+      },
+      {
+        "src": "/videos/pickanddink-1280.h264.mp4",
+        "type": "video/mp4; codecs=\"avc1.640020\"",
+        "width": 1280,
+        "codec": "h264"
+      },
+      {
+        "src": "/videos/pickanddink-720.h264.mp4",
+        "type": "video/mp4; codecs=\"avc1.64001E\"",
+        "width": 720,
+        "codec": "h264"
+      }
+    ]
+  }
+}

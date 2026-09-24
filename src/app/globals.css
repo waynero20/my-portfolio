@@ -1,198 +1,240 @@
 @import "tailwindcss";
+/* social-xray before hero: hero.css overrides the primitive's tip placement at equal specificity. */
+@import "../styles/social-xray.css";
+@import "../styles/hero.css";
+@import "../styles/work.css";
+@import "../styles/services.css";
+@import "../styles/stack.css";
+@import "../styles/contact.css";
 
-@theme {
-  --font-poppins: "Poppins", sans-serif;
-
-  --color-glass: rgba(255, 255, 255, 0.5);
-  --color-glass-border: rgba(255, 255, 255, 0.7);
-  --color-glass-hover: rgba(255, 255, 255, 0.65);
-  --color-glass-strong: rgba(255, 255, 255, 0.72);
-
-  --color-accent: #2563eb;
-  --color-accent-light: #60a5fa;
-  --color-accent-dark: #1d4ed8;
-  --color-accent-glow: rgba(37, 99, 235, 0.15);
-
-  --color-surface: #f4f0ed;
-  --color-text: #1a1a2e;
-  --color-text-muted: #6b7084;
-  --color-text-light: #9ca3b8;
-}
-
-html,
-body {
-  overflow-x: clip;
-}
-
-@media (pointer: fine) {
-  html {
-    scroll-behavior: smooth;
-  }
-}
-
-body {
-  position: relative;
-  font-family: var(--font-poppins);
-  color: var(--color-text);
-  background-color: var(--color-surface);
-}
-
-/* Glassmorphism */
-.glass {
-  background: var(--color-glass);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid var(--color-glass-border);
-  border-radius: 1.5rem;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.04),
-    0 2px 8px rgba(0, 0, 0, 0.02),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-.glass-subtle {
-  background: rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(12px) saturate(150%);
-  -webkit-backdrop-filter: blur(12px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 0.875rem;
-}
-
-.glass-strong {
-  background: var(--color-glass-strong);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  border-radius: 1.5rem;
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.06),
-    0 4px 12px rgba(0, 0, 0, 0.03),
-    inset 0 1px 0 rgba(255, 255, 255, 1);
-}
-
-/* Animated gradient mesh background */
-.gradient-mesh {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-  background-color: var(--color-surface);
-}
-
-.gradient-mesh::before,
-.gradient-mesh::after {
-  content: "";
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-}
-
-.gradient-mesh::before {
-  width: 800px;
-  height: 800px;
-  top: -20%;
-  right: -10%;
-  background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, rgba(96, 165, 250, 0.06) 50%, transparent 70%);
-  animation: float1 25s ease-in-out infinite;
-}
-
-.gradient-mesh::after {
-  width: 600px;
-  height: 600px;
-  bottom: -10%;
-  left: -5%;
-  background: radial-gradient(circle, rgba(29, 78, 216, 0.08) 0%, rgba(59, 130, 246, 0.05) 50%, transparent 70%);
-  animation: float2 30s ease-in-out infinite;
-}
-
-@keyframes float1 {
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(-60px, 40px); }
-  50% { transform: translate(-30px, -50px); }
-  75% { transform: translate(40px, 20px); }
-}
-
-@keyframes float2 {
-  0%, 100% { transform: translate(0, 0); }
-  33% { transform: translate(50px, -30px); }
-  66% { transform: translate(-40px, 50px); }
-}
-
-/* Third floating blob via extra element in layout */
-.gradient-blob-3 {
-  position: fixed;
-  width: 500px;
-  height: 500px;
-  top: 40%;
-  left: 30%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(37, 99, 235, 0.07) 0%, transparent 70%);
-  filter: blur(80px);
-  z-index: -1;
-  animation: float3 20s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes float3 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(60px, -80px) scale(1.1); }
-}
-
-/* Marquee animations */
-@keyframes marquee-left {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-@keyframes marquee-right {
-  0% { transform: translateX(-50%); }
-  100% { transform: translateX(0); }
-}
-
-/* Card swap sizing */
+/* Night palette. Brand colours never live on :root: they are the --reel-* properties below,
+   set only on [data-reel] scopes. There is no site navbar (Wayne's W1). */
 :root {
-  --card-w: 300px;
-  --card-h: 300px;
-  --card-offset-x: -35px;
-  --card-offset-y: 45px;
-  --card-scale: 0.85;
+  color-scheme: dark;
+
+  --blackout: oklch(12.76% .0035 245.81);
+  --booth: oklch(16.76% .0071 258.37);
+  --seat: oklch(21.25% .0109 260.67);
+  --hairline: oklch(27.17% .0142 261.68);
+  --smoke: oklch(49.81% .0142 259.82);
+  --ash: oklch(69.57% .0108 267.33);
+  --bone: oklch(93.55% .0091 78.28);
+  --tungsten: oklch(82.47% .1356 68.25);
+  --letterbox: oklch(0% 0 0);
+  --cue: oklch(66.56% .2237 34.33);
+
+  --dur-micro: 180ms;
+  --dur-ui: 420ms;
+  --dur-regrade: 900ms;
+  --dur-camera: 1100ms;
+
+  --z-atmo: -1;
+  --z-dip: 40;
+  --z-matchcut: 45;
 }
-@media (min-width: 640px) {
-  :root {
-    --card-w: 380px;
-    --card-h: 310px;
-    --card-offset-x: -55px;
-    --card-offset-y: 65px;
-    --card-scale: 0.85;
+
+/* Reel-scope tokens. initial-value cannot use var(), so the night values are repeated literally:
+   surface = blackout, ink = bone, muted = ash, accent/cta-bg/focus = tungsten, cta-ink = blackout,
+   spills = booth. The [data-reel="…"] rules from reelThemeCss() override them. */
+@property --reel-surface { syntax: "<color>"; inherits: true; initial-value: oklch(12.76% .0035 245.81); }
+@property --reel-ink { syntax: "<color>"; inherits: true; initial-value: oklch(93.55% .0091 78.28); }
+@property --reel-muted { syntax: "<color>"; inherits: true; initial-value: oklch(69.57% .0108 267.33); }
+@property --reel-accent { syntax: "<color>"; inherits: true; initial-value: oklch(82.47% .1356 68.25); }
+@property --reel-cta-bg { syntax: "<color>"; inherits: true; initial-value: oklch(82.47% .1356 68.25); }
+@property --reel-cta-ink { syntax: "<color>"; inherits: true; initial-value: oklch(12.76% .0035 245.81); }
+@property --reel-focus { syntax: "<color>"; inherits: true; initial-value: oklch(82.47% .1356 68.25); }
+@property --reel-spill-l { syntax: "<color>"; inherits: true; initial-value: oklch(16.76% .0071 258.37); }
+@property --reel-spill-r { syntax: "<color>"; inherits: true; initial-value: oklch(16.76% .0071 258.37); }
+
+/* Variable-font axes, composed by the `axes` utility. */
+@property --wght { syntax: "<number>"; inherits: true; initial-value: 390; }
+@property --wdth { syntax: "<number>"; inherits: true; initial-value: 100; }
+@property --rond { syntax: "<number>"; inherits: true; initial-value: 0; }
+
+/* Every --text-*, --ease-* and --radius-* key must also be registered with cn() in
+   src/lib/utils.ts; utils.test.ts enforces it. */
+@theme inline {
+  --color-*: initial;
+  --color-blackout: var(--blackout);
+  --color-booth: var(--booth);
+  --color-seat: var(--seat);
+  --color-hairline: var(--hairline);
+  --color-smoke: var(--smoke);
+  --color-ash: var(--ash);
+  --color-bone: var(--bone);
+  --color-tungsten: var(--tungsten);
+  --color-letterbox: var(--letterbox);
+  --color-cue: var(--cue);
+
+  /* Reel-bound: night by default, the brand inside [data-reel]. */
+  --color-surface: var(--reel-surface);
+  --color-ink: var(--reel-ink);
+  --color-muted: var(--reel-muted);
+  --color-accent: var(--reel-accent);
+  --color-cta: var(--reel-cta-bg);
+  --color-cta-ink: var(--reel-cta-ink);
+  --color-focus: var(--reel-focus);
+
+  /* The --ff-* variables come from next/font (src/lib/fonts.ts). Generic fallbacks follow, so a face
+     that fails to load never drops to the UA serif. */
+  --font-hero: var(--ff-hero), var(--ff-text), sans-serif;
+  --font-sans: var(--ff-text), system-ui, sans-serif;
+  --font-mono: var(--ff-mono), ui-monospace, monospace;
+
+  --text-display: clamp(64px, min(17vw, 24svh), 288px);
+  --text-display--line-height: 0.82;
+  --text-display--letter-spacing: -0.04em;
+  --text-h2: clamp(40px, 7vw, 112px);
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.62;
+  --text-body-lg: 1.125rem;
+  --text-mono: .8125rem;
+
+  --radius-screen: 14px;
+  --radius-key: 28px;
+
+  --ease-dolly: cubic-bezier(.65,0,.15,1);
+  --ease-settle: cubic-bezier(.22,1,.36,1);
+}
+
+/* Motion is off when the OS asks for reduced motion OR the Motion toggle set html[data-motion=off]. */
+@custom-variant motion-off {
+  @media (prefers-reduced-motion: reduce) {
+    @slot;
   }
-}
-@media (min-width: 1024px) {
-  :root {
-    --card-w: 440px;
-    --card-h: 350px;
-    --card-offset-x: -75px;
-    --card-offset-y: 82px;
-    --card-scale: 1;
+  &:where([data-motion=off], [data-motion=off] *) {
+    @slot;
   }
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 5px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(37, 99, 235, 0.2);
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(37, 99, 235, 0.4);
+@custom-variant motion-on {
+  @media (prefers-reduced-motion: no-preference) {
+    &:not(:where([data-motion=off], [data-motion=off] *)) {
+      @slot;
+    }
+  }
 }
 
-/* Selection */
-::selection {
-  background: rgba(37, 99, 235, 0.15);
-  color: var(--color-text);
+/* html[data-js] and html[data-edition=team] are set by BOOT_SCRIPT before first paint. */
+@custom-variant js (&:where([data-js], [data-js] *));
+@custom-variant team (&:where([data-edition=team], [data-edition=team] *));
+
+/* These media queries must equal MQ.heroPin and MQ.cinema in src/lib/motion/tokens.ts. */
+@custom-variant hero-pin {
+  @variant motion-on {
+    @variant js {
+      @media (min-width: 1024px) and (min-height: 760px) {
+        @slot;
+      }
+    }
+  }
+}
+
+@custom-variant cinema {
+  @variant motion-on {
+    @variant js {
+      @media (min-width: 1024px) and (min-height: 700px) {
+        @slot;
+      }
+    }
+  }
+}
+
+/* Work's showcase on phones and portrait tablets; the media query must equal MQ.phoneCinema. The reel
+   scene sets html[data-reels-flow] when a reel cannot fit one screen (a large text setting), which
+   hands the reels back to the flow layout. */
+@custom-variant phone-cinema {
+  @variant motion-on {
+    @variant js {
+      @media (max-width: 1023.98px) and (min-height: 600px) and (orientation: portrait) {
+        &:not(:where([data-reels-flow], [data-reels-flow] *)) {
+          @slot;
+        }
+      }
+    }
+  }
+}
+
+/* Only on elements whose axis variables get tweened. Never combine with font-* weight utilities. */
+@utility axes {
+  font-variation-settings: "wght" var(--wght), "wdth" var(--wdth), "ROND" var(--rond);
+}
+
+@layer base {
+  /* Body must never create a stacking context (no transform, filter or z-index): the atmosphere
+     sits at --z-atmo: -1 behind it. No scroll-behavior: smooth; scrollToTarget owns jumps. */
+  body {
+    @apply bg-blackout text-bone font-sans;
+    font-weight: 390;
+    overflow-x: clip;
+    /* The night weights are tuned for grayscale smoothing; subpixel rendering reads heavier on dark. */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  [data-scheme=light] {
+    --wght: 400;
+  }
+
+  ::selection {
+    background-color: var(--reel-cta-bg);
+    color: var(--reel-cta-ink);
+  }
+
+  /* Reduced motion. 1ms rather than 0, so animationend and transitionend still fire.
+     CSS cannot select scroll-driven animations, and a 1ms duration is just stretched over their
+     scroll range, so `animation-timeline: auto` moves them back onto the document timeline, where
+     they end within 1ms. Put motion-off:animate-none (animation: none) on each scroll-driven
+     element as well, so it rests in its un-animated state rather than on its fill keyframe. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after,
+    ::backdrop {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      animation-timeline: auto !important;
+      transition-duration: 1ms !important;
+    }
+  }
+
+  [data-motion=off] *,
+  [data-motion=off] ::before,
+  [data-motion=off] ::after,
+  [data-motion=off] ::backdrop {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    animation-timeline: auto !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* The rules below are unlayered, so display, shadow and ring utilities cannot override them. */
+
+/* Double ring: a 2px focus-colour outline over a surface-coloured band. Unlayered, so a shadow-*
+   or ring-* utility on a control can never strip the surface band. */
+:focus-visible {
+  outline: 2px solid var(--reel-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--reel-surface);
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
+  }
+}
+
+/* Ruling R14: scrollToTarget focuses a jump target (a section or article) and marks it
+   data-jump-target. That programmatic focus must not ring the whole region. Scoped to the marker, so
+   roving-tabindex controls (tabindex="-1" keys and cells) keep their ring. */
+[data-jump-target]:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Editions: both are server-rendered and one is hidden before first paint. No attribute = client. */
+[data-edition=team] [data-edition-client],
+:root:not([data-edition=team]) [data-edition-team] {
+  display: none;
 }

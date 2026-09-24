@@ -1,0 +1,270 @@
+/* Stack (call sheet) styles. Owner: M2c services + stack.
+
+   Every state here is colour, opacity or a transform, so pinning a column, previewing one or showing
+   a tool's line never reflows a row. */
+
+.call-sheet {
+  /* The column band: a solid step between blackout and seat (solid, because the sticky header
+     cells scroll over rows and must hide them). */
+  --call-band: color-mix(in oklab, var(--seat) 62%, var(--blackout));
+}
+
+/* The header row sticks to the top of the screen while the table is in view (there is no site nav).
+   The rule under it is an inset shadow: a collapsed border doesn't travel with a sticky cell. */
+.call-sheet-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: var(--blackout);
+  box-shadow: inset 0 -1px var(--hairline);
+  transition: background-color var(--dur-micro) var(--ease-settle);
+}
+
+/* With JS, CallSheet sets data-stuck while the header is stuck; until then it is see-through. */
+:root[data-js] .call-sheet:not([data-stuck]) .call-sheet-head:not(.call-sheet-band) {
+  background-color: transparent;
+}
+
+.call-sheet-band {
+  background: var(--call-band);
+}
+
+.call-sheet-head.call-sheet-band {
+  box-shadow: inset 0 -2px var(--tungsten);
+}
+
+/* Column header toggles: each is the project's logo tile (W12: logos, not dots). A pinned one gets a
+   bone halo; a dimmed one fades its tile only. */
+.call-sheet-pin {
+  color: var(--ash);
+  transition: color var(--dur-micro) var(--ease-settle);
+
+  &[aria-pressed="true"],
+  .call-sheet-band > & {
+    color: var(--bone);
+  }
+
+  &[aria-pressed="true"] .call-sheet-dot {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--bone) 18%, transparent);
+  }
+
+  /* The header sticks at the very top of the screen, so the double focus ring is drawn inside the
+     button (an outer surface ring, then the focus colour) where the screen edge can't clip it. */
+  &:focus-visible {
+    outline-offset: -4px;
+    box-shadow: inset 0 0 0 4px var(--reel-surface);
+  }
+}
+
+@media (hover: hover) {
+  .call-sheet-pin:hover {
+    color: var(--bone);
+  }
+}
+
+.call-sheet-dot {
+  vertical-align: middle;
+  transition:
+    opacity var(--dur-micro) var(--ease-settle),
+    scale var(--dur-micro) var(--ease-settle);
+
+  &.is-focus {
+    scale: 1.3;
+  }
+}
+
+/* Dimming is for the ticks and logo tiles only (text never drops below AA). 0.4 keeps a shipped tick
+   clearly apart from the "not used" dash. */
+.call-sheet-dot.is-dim,
+.call-sheet-pin.is-dim .call-sheet-dot {
+  opacity: 0.4;
+}
+
+/* A shipped cell: a bone tick; tungsten while its column is in focus. */
+.call-sheet-tick {
+  color: var(--bone);
+
+  &.is-focus {
+    color: var(--tungsten);
+  }
+}
+
+/* A "not used" cell: a short hairline dash (no dots anywhere, W12). */
+.call-sheet-empty {
+  display: inline-block;
+  width: 6px;
+  height: 1px;
+  vertical-align: middle;
+  background: color-mix(in oklab, var(--ash) 35%, transparent);
+}
+
+.call-sheet-row {
+  transition: background-color var(--dur-micro) var(--ease-settle);
+
+  & > th {
+    transition: box-shadow var(--dur-micro) var(--ease-settle);
+  }
+
+  & > td {
+    line-height: 0;
+  }
+
+  &.is-shown {
+    background: var(--seat);
+
+    & > th {
+      box-shadow: inset 2px 0 var(--tungsten);
+    }
+
+    & > .call-sheet-band {
+      background: color-mix(in oklab, var(--seat) 80%, var(--bone) 6%);
+    }
+  }
+}
+
+/* Totals rest in bone; while a column is in focus the others step down to ash (still 7.4:1) and the
+   focused one turns tungsten. */
+.call-sheet-total {
+  color: var(--bone);
+  transition: color var(--dur-micro) var(--ease-settle);
+
+  &.is-dim {
+    color: var(--ash);
+  }
+
+  &.is-focus {
+    color: var(--tungsten);
+  }
+}
+
+/* Everyday-kit chips: mono pills. Only the ones with a "why" line are buttons. Compact on phones,
+   where the kit cell is about 180px wide. */
+.call-sheet-kit {
+  display: inline-flex;
+  align-items: center;
+  height: 1.75rem;
+  padding-inline: 0.5625rem;
+  border: 1px solid var(--hairline);
+  border-radius: 9999px;
+  font-family: --theme(--font-mono inline);
+  font-size: 0.6875rem;
+  line-height: 1;
+  color: color-mix(in oklab, var(--bone) 88%, transparent);
+  transition:
+    border-color var(--dur-micro) var(--ease-settle),
+    background-color var(--dur-micro) var(--ease-settle);
+}
+
+.call-sheet-kit.is-shown {
+  border-color: color-mix(in oklab, var(--bone) 45%, transparent);
+  background: var(--seat);
+}
+
+/* Like the tool buttons (scroll-mt-20 scroll-mb-36): focus scrolls a pill clear of the stuck header
+   above and of the floating "why" card below (the slot plus its 16px, with room to spare). */
+button.call-sheet-kit {
+  scroll-margin-block: 5rem 9rem;
+}
+
+@media (hover: hover) {
+  button.call-sheet-kit:hover {
+    border-color: color-mix(in oklab, var(--bone) 45%, transparent);
+    background: var(--seat);
+  }
+}
+
+/* A kit tool with no "why" line is a plain label: no pill, ash text, so it doesn't read as a button. */
+.call-sheet-kit.is-plain {
+  padding-inline: 0.375rem;
+  border-color: transparent;
+  color: var(--ash);
+}
+
+/* Below 380px the kit cell is about 180px wide: 4px sides let the two plain labels share a line. */
+@media (width < 23.75rem) {
+  .call-sheet-kit.is-plain {
+    padding-inline: 0.25rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .call-sheet-kit {
+    height: 2rem;
+    padding-inline: 0.75rem;
+    font-size: --theme(--text-mono inline);
+  }
+}
+
+/* The "why" slot: a fixed box under the table that is also the section's bottom padding. It is
+   sticky, so while the table runs past the bottom of the screen it rides 16px above that edge, and
+   once the table's end is in view it docks under the table. The card is anchored to the slot's
+   bottom and grows upward if a line ever runs long, so the slot's height never changes and nothing
+   below it moves. The slot never takes the pointer, so the card can float over rows without
+   blocking them. Sized to the real card with the longest lines: two body lines on phones (96px at
+   360 and 390) and from lg until the table column is wide enough (73px at 1024), one from xl (49px
+   at 1280 and 1440). */
+.call-sheet-why {
+  position: sticky;
+  bottom: 1rem;
+  z-index: 3;
+  height: 6.25rem;
+  margin-top: 1rem;
+  pointer-events: none;
+}
+
+@media (min-width: 64rem) {
+  .call-sheet-why {
+    height: 4.75rem;
+    margin-top: 0.75rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  .call-sheet-why {
+    height: 3.5rem;
+  }
+}
+
+.call-sheet-why-card {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 1rem;
+  row-gap: 0.25rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--hairline);
+  border-radius: --theme(--radius-screen inline);
+  background: var(--booth);
+  box-shadow:
+    0 18px 40px -16px oklch(0% 0 0 / 0.85),
+    inset 0 1px color-mix(in oklab, var(--bone) 5%, transparent);
+  animation: call-sheet-why-in var(--dur-ui) var(--ease-settle);
+}
+
+@keyframes call-sheet-why-in {
+  from {
+    opacity: 0;
+    translate: 0 0.375rem;
+  }
+}
+
+:root[data-motion="off"] .call-sheet-why-card {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .call-sheet-why-card {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .call-sheet-head.call-sheet-band,
+  .call-sheet-row.is-shown > th {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}

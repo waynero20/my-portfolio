@@ -40,3 +40,13 @@ next-env.d.ts
 
 # video source masters (not for deploy)
 /video-sources/
+
+# asset pipeline sources and caches
+/asset-sources/
+/.cache/
+
+# lighthouse reports
+/.lighthouse/
+
+# agent planning workspace
+/.superpowers/
