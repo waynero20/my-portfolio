@@ -1,24 +1,27 @@
 /* Hero styles. Owner: M2 hero (W8).
 
    The cold open is laid out from custom properties. hero.tsx passes the font metrics in from
-   hero-fit.ts (--wayne-em-112, --rondina-em-75/-112, --cap-em, --cap-over, --cap-under, all in em)
+   hero-fit.ts (--wayne-em-112, --rondina-em-75/-112, --cap-em, --cap-over, --cap-under, all in em, and
+   --hero-track-phone, the phones' tracking)
    and the bust rig from generated/portrait.ts (--head-ratio, the photo's size --photo-u-w/-h and the
    head box in photo px: --head-u-x, --head-u-y, --head-u-h). They sit on .hero-frame, so the lower third can read the geometry too; every
    length is resolved where it is used (100cqi is always the frame's width). Lengths:
    --lb          letterbox bar height: 4svh from 720px tall, 9svh from 900px, desktop only.
-   --fs          the name's font size (height-aware, capped so RONDINA always fits the frame).
+   --fs          the name's font size, capped so RONDINA always fits the frame: phones size it from the
+                 head (--fs-per-m), desktop from the screen (--text-display).
    --m           the head's height, crown to chin line (height-aware everywhere: the fold sizes it).
    --s           CSS px per photo px (face.png is the unit of the whole rig).
    --head-top    the head's top edge, from the top of the name block.
    --head-left   the head's left edge, from the frame's left edge.
    --wayne-top   WAYNE's cap top, from the top of the name block.
    --chin        RONDINA's cap top: 3% of the head below the chin line (clear of the face).
+   --name-lift   desktop: how far the name block (with the head) rises to centre the name on the stage.
    --rig-x/-y    where the photo's top-left corner lands; every rig layer is a box in photo px from it.
 
    The h1 is one inline formatting context: WAYNE, a zero-width spacer as tall as the gap to RONDINA's
    line, then RONDINA on the next line. The words are inline blocks (so they can translate) and are
-   z-indexed into .hero-name's stacking context, back to front: WAYNE 1, back cloud 2, bust 3, front
-   cloud 5, RONDINA 6. The h1 itself never makes a stacking context. */
+   z-indexed into .hero-name's stacking context, back to front: WAYNE 1, far dots 2, bust 3 (with the
+   body dots riding it), near dots 5, RONDINA 6. The h1 itself never makes a stacking context. */
 
 .hero-stage {
   --lb: 0px;
@@ -70,34 +73,37 @@
   }
 }
 
-/* Phones: the back cloud is barely moving; don't keep it on its own layer. */
-@media (max-width: 1023px) {
-  .hero-stage[data-live] .hero-cloud-back {
-    will-change: auto;
-  }
-}
-
 .hero-frame {
   --rondina-em: var(--rondina-em-75);
-  --fs: min(--theme(--text-display inline), calc(100cqi / var(--rondina-em)));
+  /* Phones (W24): the name is a fixed share of the head, so the two grow together; never under
+     --fs-min, never wider than the frame. */
+  --fs-per-m: 0.33;
+  --fs-min: 64px;
+  --fs: clamp(var(--fs-min), calc(var(--m) * var(--fs-per-m)), calc(100cqi / var(--rondina-em)));
   --cap: calc(var(--cap-em) * var(--fs));
-  /* Phones (W14): the whole cold open fits one 100svh screen, so the head takes what the rest leaves.
-     --chrome-sm is everything on that screen except the name block: 1.5 frame padding, the eyebrow
-     (5.25: the role on two lines, the status reserving two), the 1.5 gap to the name; below it the
-     1 gap, the lead (--lead-lines of 1.62 × 1.0625), the 1 gap, the 3.25 CTA row, the 1 gap, the
-     3.25 social row and the frame's 1.5 bottom margin. Keep it in step with hero.tsx's spacing. The
-     name block is --head-top plus the photo from the crown down, plus --belly head heights for the
-     cloud's core. */
+  /* Phones (W14, W24): the whole cold open fits one 100svh screen, and the head (with the name, which
+     follows it) takes all the height the rest leaves. --chrome-sm is everything on that screen except
+     the name block: 1.5 frame padding, the eyebrow (5.25: the role on two lines, the status reserving
+     two), the 1.5 gap to the name; below it the 1 gap, the lead (--lead-lines of 1.62 × 1.0625), the
+     1 gap, the 3.25 CTA row, the 0.75 gap, the 3.25 social row and the frame's 1.5 bottom margin (sm
+     and md below). Keep it in step with hero.tsx's spacing. The name block is WAYNE (--head-top:
+     cap + 0.12 of --fs), the photo from the crown down (--m-tall head heights, with --belly past the
+     cut: negative, so the lead starts where the photo is cut and the dissolve's tail runs on, fading,
+     behind its first lines). --m is the head that fills the fold, with the name at --fs-per-m of it,
+     or at --fs-min where that is larger (short phones: the lesser of the two heads is the one that
+     fits). */
   --lead-lines: 3;
-  --belly: 0.06;
-  --chrome-sm: calc(19.25rem + var(--lead-lines) * 1.72125rem);
+  --belly: -0.06;
+  --chrome-sm: calc(19rem + var(--lead-lines) * 1.72125rem);
+  --m-room: calc(100svh - var(--chrome-sm));
+  --m-tall: calc((var(--photo-u-h) - var(--head-u-y)) / var(--head-u-h) + var(--belly));
   --m: clamp(
     120px,
-    calc(
-      (100svh - var(--chrome-sm) - var(--head-top)) /
-        ((var(--photo-u-h) - var(--head-u-y)) / var(--head-u-h) + var(--belly))
+    min(
+      var(--m-room) / (var(--m-tall) + (var(--cap-em) + 0.12) * var(--fs-per-m)),
+      (var(--m-room) - (var(--cap-em) + 0.12) * var(--fs-min)) / var(--m-tall)
     ),
-    min(56vw, 300px)
+    min(74vw, 460px)
   );
   /* Mobile: WAYNE, then the head just clear of WAYNE's foot (no overlap), then RONDINA. */
   --head-top: calc(var(--cap) + 0.12 * var(--fs));
@@ -112,15 +118,27 @@
   max-width: 80rem;
   padding-top: calc(var(--lb) + 1.5rem);
 
+  /* From sm the eyebrow takes two lines (2.75), the lower third opens up (1.5 above the lead, 1.25
+     under it) and the lead runs a line shorter; from md the CTAs and the socials share one row. */
+  @variant sm {
+    --lead-lines: 2;
+    --chrome-sm: calc(17.25rem + var(--lead-lines) * 1.72125rem);
+  }
+
+  @variant md {
+    --chrome-sm: calc(13.25rem + var(--lead-lines) * 1.72125rem);
+  }
+
   @variant lg {
     /* Desktop: the head right of WAYNE, WAYNE at forehead level, RONDINA below the chin. The head is
        centred in the empty space right of WAYNE (never over it: at least 1rem clear of its end). */
     --rondina-em: var(--rondina-em-112);
+    --fs: min(--theme(--text-display inline), calc(100cqi / var(--rondina-em)));
     --m-max: 460px;
     /* The head the fold allows, with the lead at --lead-lines-lg lines. */
     --m-fold: calc((100svh - var(--hero-chrome) - var(--cap)) / 1.03);
     /* The head at which the lower third's column (.hero-lower's width, taking the head as centred:
-       the most it can narrow) comes down to a given width. A larger head pushes its cloud left. */
+       the most it can narrow) comes down to a given width. A larger head pushes its dissolve left. */
     --m-col-lead: calc(
       ((100cqi + var(--wayne-em-112) * var(--fs)) / 2 - 1.5rem - var(--lead-w-lg)) * var(--head-u-h) /
         (0.58 * var(--photo-u-w))
@@ -149,31 +167,51 @@
       calc(var(--wayne-em-112) * --theme(--text-display inline) + var(--head-ratio) * var(--m-max) + 6rem)
     );
     --head-top: 0px;
-    --wayne-top: calc(var(--m) * 0.14);
+    /* WAYNE sits low beside the head, its baseline 0.28 cap above RONDINA's cap line, so the two
+       lines read as one name (Wayne's W22); never higher than forehead level (0.14 of the head). The
+       spacer below absorbs the difference, so the name block's height is unchanged. */
+    --wayne-top: max(calc(var(--m) * 0.14), calc(var(--chin) - var(--cap) * 1.28));
     --head-left: calc(
       var(--wayne-em-112) * var(--fs) + max(1rem, (100cqi - var(--wayne-em-112) * var(--fs) - var(--head-w)) / 2)
     );
+    /* The name block (WAYNE, RONDINA and the head they are locked to) rises until the name, WAYNE's cap
+       top to RONDINA's baseline, is centred on the stage (Wayne's W26), as far as 2.25rem: the crown
+       then sits 0.5rem under the eyebrow's top, to its right. It is a translate, so nothing reflows:
+       the head keeps its size and the lower third stays put, with more room under RONDINA. */
+    --name-lift: clamp(
+      0px,
+      calc(var(--lb) + 4.25rem - (50svh - (var(--wayne-top) + var(--chin) + var(--cap)) / 2)),
+      2.25rem
+    );
+    /* The lower third's column: left of the dissolve (its dots reach about .58 bust widths left of the
+       head's centre; the loose layers' strays past that are masked off, below). */
+    --lower-w: min(36rem, calc(var(--head-left) + var(--head-w) / 2 - 0.58 * var(--photo-u-w) * var(--s) - 1.5rem));
   }
 }
 
-/* The team edition's lead runs a line longer on phones. */
+/* The team edition's lead runs a line longer below lg. */
 [data-edition="team"] .hero-frame {
   --lead-lines: 4;
+
+  @variant sm {
+    --lead-lines: 3;
+  }
 }
 
 .hero-name {
   position: relative;
   isolation: isolate;
   font-size: var(--fs);
-  /* Phones: room under RONDINA for the cloud the bust floats in (the photo's cut sits in its core;
-     below it the cloud's underside is near black, so the lead can start just under it). */
+  /* Phones: the block ends --belly head heights past the photo's cut (below, the dots fade out behind
+     the lead). */
   min-height: calc(var(--rig-y) + var(--photo-u-h) * var(--s) + var(--m) * var(--belly));
 
   @variant lg {
     min-height: 0;
+    translate: 0 calc(var(--name-lift) * -1);
   }
 
-  /* The tungsten lamp: a faint pool behind the head (the same key that lights the cloud crowns). */
+  /* The tungsten lamp: a faint pool behind the head (the same key that warms the dissolve's shoulder line). */
   &::before {
     content: "";
     position: absolute;
@@ -198,11 +236,13 @@
   margin-inline: auto;
   padding-top: var(--wayne-top);
   line-height: --theme(--text-display--line-height inline);
-  letter-spacing: --theme(--text-display--letter-spacing inline);
+  /* The narrow cut on phones sits its letters closer, so it tracks looser: the same gaps as desktop's. */
+  letter-spacing: var(--hero-track-phone);
   text-align: center;
 
   @variant lg {
     margin-inline: 0;
+    letter-spacing: --theme(--text-display--letter-spacing inline);
     text-align: start;
   }
 }
@@ -232,14 +272,14 @@
   position: relative;
   display: inline-block;
 
-  /* WAYNE passes behind the bust; RONDINA runs in front of the neck and the front cloud. */
+  /* WAYNE passes behind the bust; RONDINA runs in front of the neck and the near dots. */
   &[data-hero-word="first"] {
     z-index: 1;
   }
 
   &[data-hero-word="last"] {
     z-index: 6;
-    /* Bone over skin (the neck) and the cloud needs a little separation to hold 3:1: a tight shade
+    /* Bone over skin (the neck) and over bone dots needs a little separation to hold 3:1: a tight shade
        under the strokes and a soft falloff around them (invisible over the dark room). */
     text-shadow:
       0 0 0.06em rgb(6 7 8 / 0.45),
@@ -264,41 +304,186 @@
   }
 }
 
-.hero-cloud-back {
-  z-index: 2;
-  /* Phones: RONDINA's ends pass right over the back bank's crowns; a dimmer back layer keeps them 3:1
-     (and reads as further away). */
-  opacity: 0.78;
-
-  @variant lg {
-    opacity: 1;
-  }
-}
-
 .hero-bust {
   z-index: 3;
 }
 
-/* The front bank has a phone bake with its own box (hero.tsx passes both). */
-.hero-cloud-front {
-  --bx: var(--sm-x);
-  --by: var(--sm-y);
-  --bw: var(--sm-w);
-  --bh: var(--sm-h);
+/* The dissolve (build-dissolve.mts): the black tee breaks down into the x-ray's own bone dots, three
+   baked layers on its lattice. far (behind the bust) lags on scroll, body rides the bust inside its
+   float (over the photo and the x-ray, so an exposure runs straight into it), near (in front of the
+   bust, under RONDINA) rises faster: on scroll the loose dots gather into him (HeroMotion). Each is a
+   box in photo px (--bx, --by, --bw, --bh). */
+.hero-dots-far {
+  z-index: 2;
+}
 
+.hero-dots-near {
   z-index: 5;
+}
 
-  @variant lg {
-    --bx: var(--lg-x);
-    --by: var(--lg-y);
-    --bw: var(--lg-w);
-    --bh: var(--lg-h);
+/* The body layer sits in the float, whose box is the photo's: no rig offset, and its own size (so it
+   outranks .hero-rig img). */
+.hero-bust .hero-dots-body {
+  position: absolute;
+  top: calc(var(--by) * var(--s));
+  left: calc(var(--bx) * var(--s));
+  width: calc(var(--bw) * var(--s));
+  max-width: none;
+  height: calc(var(--bh) * var(--s));
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Phones: the tail thins from 100u above the photo's cut and is gone --tail head heights below it,
+   so behind the lead's first lines only a few dim dots are left. In each layer's own box, so the stops
+   are shares of --bh. */
+@media (max-width: 1023px) {
+  .hero-dots {
+    --tail: 0.2;
+    --tail-from: calc((var(--photo-u-h) - 100 - var(--by)) / var(--bh) * 100%);
+    --tail-mid: calc((var(--photo-u-h) - var(--by)) / var(--bh) * 100%);
+    --tail-to: calc((var(--photo-u-h) + var(--tail) * var(--head-u-h) - var(--by)) / var(--bh) * 100%);
+
+    mask-image: linear-gradient(
+      to bottom,
+      #000 var(--tail-from),
+      rgb(0 0 0 / 0.3) var(--tail-mid),
+      transparent var(--tail-to)
+    );
+  }
+}
+
+/* Desktop: the dots stay clear of the lower third's column (they fade in over 0.75–8rem past its edge),
+   and fade out above the stage's foot, which is 100svh down from the stage's top: --lb, the frame's
+   1.5 padding, the 1.25 eyebrow and the 1.5 gap above the name block (hero.tsx), less --name-lift, so
+   they never end on a hard edge where the unpinned stage scrolls away. In each layer's own box (--rig-x/-y plus --bx/--by). */
+@media (min-width: 1024px) {
+  .hero-dots {
+    --clear: calc(var(--lower-w) - var(--rig-x) - var(--bx) * var(--s));
+    --foot: calc(100svh - var(--lb) - 4.25rem + var(--name-lift) - var(--rig-y) - var(--by) * var(--s));
+
+    mask-image:
+      linear-gradient(to right, transparent calc(var(--clear) + 0.75rem), #000 calc(var(--clear) + 8rem)),
+      linear-gradient(to bottom, #000 calc(var(--foot) - 7rem), transparent var(--foot));
+    mask-composite: intersect;
+  }
+}
+
+/* The loose layers' ambient life (W24), while the portrait is live (HeroPortrait's data-float: on
+   screen, the tab visible, not paused by the head's button): each drifts on its own slow clock inside
+   its box (the box itself is HeroMotion's and useHeroParallax's), and a share of its dots glints: two
+   frames of a sprite (build-dissolve.mts) fading in and out on unrelated clocks, so the scatter
+   shimmers without a visible loop. The half-res loose layers scale up pixelated, so their dots stay
+   crisp squares. Motion off: no drift, and both glint frames hold at half strength. */
+.hero-drift {
+  position: absolute;
+  inset: 0;
+  animation: hero-drift-far 13s ease-in-out -6.5s infinite alternate paused;
+
+  .hero-dots-near > & {
+    animation-name: hero-drift-near;
+    animation-duration: 9s;
+    animation-delay: -2s;
+  }
+
+  & img {
+    image-rendering: pixelated;
+  }
+
+  @variant motion-off {
+    animation: none;
+  }
+}
+
+.hero-glint {
+  position: absolute;
+  inset: 0;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--glint) 0 0 / 100% 200% no-repeat;
+    image-rendering: pixelated;
+    opacity: 0;
+    animation: hero-glint 2.9s ease-in-out -0.4s infinite paused;
+  }
+
+  &::after {
+    background-position: 0 100%;
+    animation-duration: 3.7s;
+    animation-delay: -2.3s;
+  }
+
+  .hero-dots-near &::before {
+    animation-duration: 2.3s;
+    animation-delay: -1.1s;
+  }
+
+  .hero-dots-near &::after {
+    animation-duration: 3.1s;
+    animation-delay: -0.2s;
+  }
+
+  @variant motion-off {
+    &::before,
+    &::after {
+      animation: none;
+      opacity: 0.5;
+    }
+  }
+}
+
+.hero-name:has(> [data-float]) {
+  & .hero-drift,
+  & .hero-glint::before,
+  & .hero-glint::after {
+    animation-play-state: running;
+  }
+}
+
+@keyframes hero-drift-far {
+  from {
+    transform: translate(-0.6%, 0.8%);
+  }
+
+  to {
+    transform: translate(0.6%, -0.8%);
+  }
+}
+
+@keyframes hero-drift-near {
+  from {
+    transform: translate(0.7%, 1.2%);
+  }
+
+  to {
+    transform: translate(-0.7%, -1.2%);
+  }
+}
+
+/* A glint: dark, a quick rise, a hold, a slower fall, dark again. */
+@keyframes hero-glint {
+  0%,
+  18% {
+    opacity: 0;
+  }
+
+  34%,
+  52% {
+    opacity: 1;
+  }
+
+  78%,
+  100% {
+    opacity: 0;
   }
 }
 
 /* The bust's float: a slow ±5px bob. It runs only while the hero is on screen, the tab is visible and
-   the portrait isn't paused (HeroPortrait sets data-float); the front cloud stays still, which is what
-   sells it. The negative delay starts it mid-travel, so it pauses at rest. */
+   the portrait isn't paused (HeroPortrait sets data-float); the near and far dots stay still, which is
+   what sells it. The negative delay starts it mid-travel, so it pauses at rest. */
 .hero-float {
   position: absolute;
   inset: 0;
@@ -410,11 +595,10 @@
   pointer-events: auto;
 }
 
-/* Desktop: the lead, CTAs and socials live left of the cloud (its visible tail starts about .58 bust
-   widths left of the head's centre), where the backdrop stays dark. */
+/* Desktop: the lead, CTAs and socials live left of the dissolve, where the backdrop stays dark. */
 .hero-lower {
   @variant lg {
-    width: min(36rem, calc(var(--head-left) + var(--head-w) / 2 - 0.58 * var(--photo-u-w) * var(--s) - 1.5rem));
+    width: var(--lower-w);
   }
 }
 

@@ -30,18 +30,20 @@ const HIDE_MARGIN_PX = 6;
 const TUCKED_SHOWS = 0.55;
 
 /**
- * Depth parallax over the same scroll, in head heights (--m): the bust drifts up a little, the back
- * cloud lags and drifts right, the front cloud rises past the bust and drifts left. The front cloud
- * always rises at least as far as the bust and drifts at most .07 bust widths sideways, so the photo's
- * cut stays buried in it.
+ * Depth parallax over the same scroll, in head heights (--m): the bust drifts up a little (its body
+ * dots ride it), the far dots lag and drift right, the near dots rise past the bust and drift left, so
+ * the loose dots gather into him.
  */
 const DEPTH = {
   bust: { x: 0, y: -0.08 },
-  back: { x: 0.043, y: -0.03 },
-  front: { x: -0.085, y: -0.11 },
+  far: { x: 0.05, y: -0.02 },
+  near: { x: -0.07, y: -0.2 },
 } as const;
 
 type Layer = keyof typeof DEPTH;
+
+/** The opacity the near and far dots lose over the same scroll: the scatter thins out as he resolves. */
+const THIN_OUT: Partial<Record<Layer, number>> = { far: 0.25, near: 0.45 };
 
 interface Props {
   children: ReactNode;
@@ -88,8 +90,9 @@ function wayneEnd(word: HTMLElement, bust: HTMLElement, aim: number): number {
  *   (wayneEnd). RONDINA slides to the frame's centre over the first
  *   half, then on past its start to the left (phones: it starts centred, so it simply slides left).
  *   Transform only, at the words' resting width: no layout, no reflow.
- * - The bust and the two cloud layers drift at their own rates (DEPTH); fine pointers add a small
- *   pointer parallax on top (useHeroParallax). The bust's float is CSS (HeroPortrait).
+ * - The bust and the dissolve's near and far dots drift at their own rates (DEPTH), and the loose dots
+ *   thin out (THIN_OUT); fine pointers add a small pointer parallax on top (useHeroParallax). The
+ *   bust's float is CSS (HeroPortrait).
  * - hero-pin screens scrub across the pin and drive the atmosphere; every other screen scrubs over
  *   the first 55svh of scroll. Both retract the letterbox.
  * - Reduced motion: nothing moves.
@@ -153,7 +156,13 @@ export function HeroMotion({ children, className }: Props) {
 
     for (const id of Object.keys(DEPTH) as Layer[]) {
       const target = layer(id);
-      if (target) timeline.to(target, { x: () => DEPTH[id].x * headPx(), y: () => DEPTH[id].y * headPx() }, 0);
+      const thin = THIN_OUT[id];
+      if (!target) continue;
+      timeline.to(
+        target,
+        { x: () => DEPTH[id].x * headPx(), y: () => DEPTH[id].y * headPx(), ...(thin === undefined ? {} : { opacity: 1 - thin }) },
+        0,
+      );
     }
     // The letterbox retracts over the same scroll, pinned or not (unpinned, the bottom bar would
     // otherwise scroll up the screen as a black stripe).

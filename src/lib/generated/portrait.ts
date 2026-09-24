@@ -4,17 +4,17 @@
  * The hero's bust rig. Every box is in source px of public/hero/face.png ("u"), from its top-left
  * corner; hero.css scales u to CSS px with --s (the head's CSS height over head.h).
  * - head: crown to the chin line, ear to ear. The layout sizes the head (--m) from this box.
- * - photo: the colour bust (the resting image) as AVIF and WebP srcsets; its bottom dissolves before the cut.
+ * - photo: the colour bust (the resting image) as AVIF and WebP srcsets; its chest drops out in Bayer
+ *   cells well above the flat cut, where the dissolve takes over.
  * - xray: the develop, `frames` 1-bit frames (coarse to fine) of `frameWidth` × `frameHeight` px in one
  *   horizontal strip, covering `box`. Render with image-rendering: pixelated. frame0 is the coarsest,
  *   inline, for the first paint.
- * - cloud: the baked layers (build-cloud.mts). back sits behind the bust, front (or frontSm below 1024px)
- *   in front of it; the photo's cut row lies in each one's dense core.
+ * The dissolve's dot layers, on the same lattice, are in generated/dissolve.ts (build-dissolve.mts).
  */
 export const PORTRAIT = {
   width: 992,
   height: 1057,
-  head: { x: 297, y: 242, w: 390, h: 523 },
+  head: { x: 301, y: 242, w: 384, h: 523 },
   photo: {
     avif: "/hero/portrait-480.avif 480w, /hero/portrait-768.avif 768w, /hero/portrait-992.avif 992w",
     webp: "/hero/portrait-480.webp 480w, /hero/portrait-768.webp 768w, /hero/portrait-992.webp 992w",
@@ -26,29 +26,6 @@ export const PORTRAIT = {
     frameWidth: 264,
     frameHeight: 216,
     box: { x: -32, y: 193, w: 1056, h: 864 },
-    frame0: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACEAAAAbAgMAAACPaw43AAAACVBMVEVMaXHt6eMGBwgwvVi/AAAAAXRSTlMAQObYZgAAAAlwSFlzAAAD6AAAA+gBtXtSawAAAIdJREFUGNNjYEAGXDNgrLRlDhAG46pVCyAspqysBKiylTNXQFhsqaEpULGZcLGsNKgY56qoGejqOGfOhImlpYVAxWbNnAKzNw1qL8PKlQ0YYrNmNsD1Qs1buWrlrAaotUAAVrVqFRBNALo4bdmqVcuWAVUyrQIDkE84PDIyPDwgPlJSUkLxPwDl2C4HOAzqOQAAAABJRU5ErkJggg==",
-  },
-  cloud: {
-    back: {
-      avif: "/hero/cloud-back.avif",
-      webp: "/hero/cloud-back.webp",
-      width: 1024,
-      height: 272,
-      box: { x: -272, y: 735.6, w: 1607, h: 426.9 },
-    },
-    front: {
-      avif: "/hero/cloud-front.avif",
-      webp: "/hero/cloud-front.webp",
-      width: 1600,
-      height: 392,
-      box: { x: -140, y: 849.5, w: 1330, h: 325.9 },
-    },
-    frontSm: {
-      avif: "/hero/cloud-front-sm.avif",
-      webp: "/hero/cloud-front-sm.webp",
-      width: 1280,
-      height: 288,
-      box: { x: -254, y: 852.3, w: 1500, h: 337.5 },
-    },
+    frame0: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACEAAAAbAgMAAACPaw43AAAACVBMVEVMaXHt6eMGBwgwvVi/AAAAAXRSTlMAQObYZgAAAAlwSFlzAAAD6AAAA+gBtXtSawAAAIZJREFUGNNlj00KwjAQhaPQoj1GTuIyB7AFdy7sEOYUPYJLJysXIuadUkheitJZfXy8+XPut4ZHIxHCHlhIqlfGcmKwn8cbndmHTmV1l+bGljtaZm83TedKu2T3de+JlG3ZuNRcLzPnwXI9cFARjUUBCXiW2/EGXpVQnDuEGEOoH3nv//7/AkKJLdB9O5taAAAAAElFTkSuQmCC",
   },
 } as const;

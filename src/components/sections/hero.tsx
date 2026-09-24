@@ -9,8 +9,9 @@ import { HeroPortrait } from "@/components/sections/hero-portrait";
 import type { CssVars } from "@/lib/types";
 
 import { EDITIONS, SITE, SOCIALS } from "@/lib/data";
+import { DISSOLVE } from "@/lib/generated/dissolve";
 import { PORTRAIT } from "@/lib/generated/portrait";
-import { HERO_CAP_EM, heroCapBand, heroWordEm } from "@/lib/hero-fit";
+import { HERO_CAP_EM, HERO_PHONE_TRACKING_EM, heroCapBand, heroWordEm } from "@/lib/hero-fit";
 import { HERO_PIN_SVH } from "@/lib/motion/tokens";
 
 // The eyebrow reads "{role} — {city}, {country}".
@@ -22,13 +23,14 @@ const [FIRST_NAME, LAST_NAME] = SITE.name.split(" ");
 
 const CAP_BAND = heroCapBand();
 
-const { head: HEAD, cloud: CLOUD } = PORTRAIT;
+const { head: HEAD } = PORTRAIT;
 
 /** The metrics hero.css lays the name, the bust rig and the lower third out with (see the top of hero.css). */
 const NAME_METRICS: CssVars = {
   "--wayne-em-112": heroWordEm("WAYNE", "112"),
-  "--rondina-em-75": heroWordEm("RONDINA", "75"),
+  "--rondina-em-75": heroWordEm("RONDINA", "75", HERO_PHONE_TRACKING_EM),
   "--rondina-em-112": heroWordEm("RONDINA", "112"),
+  "--hero-track-phone": `${HERO_PHONE_TRACKING_EM}em`,
   "--cap-em": HERO_CAP_EM,
   "--cap-over": CAP_BAND.over,
   "--cap-under": CAP_BAND.under,
@@ -40,24 +42,21 @@ const NAME_METRICS: CssVars = {
   "--head-u-h": HEAD.h,
 };
 
-const BACK_CLOUD_STYLE: CssVars = {
-  "--bx": CLOUD.back.box.x,
-  "--by": CLOUD.back.box.y,
-  "--bw": CLOUD.back.box.w,
-  "--bh": CLOUD.back.box.h,
+type LooseLayer = "far" | "near";
+
+/**
+ * The dissolve's loose layers: far behind the bust, near in front of it. Each is a box in photo px
+ * (hero.css .hero-rig) with its glint sprite; depth is the pointer parallax's travel (useHeroParallax).
+ */
+const LOOSE_LAYERS: Record<LooseLayer, { depth: number; className: string; style: CssVars }> = {
+  far: { depth: 3, className: "hero-rig hero-dots hero-dots-far", style: looseStyle("far") },
+  near: { depth: 9, className: "hero-rig hero-dots hero-dots-near", style: looseStyle("near") },
 };
 
-/** The front layer has a phone bake (frontSm) with its own box; hero.css picks the pair per breakpoint. */
-const FRONT_CLOUD_STYLE: CssVars = {
-  "--lg-x": CLOUD.front.box.x,
-  "--lg-y": CLOUD.front.box.y,
-  "--lg-w": CLOUD.front.box.w,
-  "--lg-h": CLOUD.front.box.h,
-  "--sm-x": CLOUD.frontSm.box.x,
-  "--sm-y": CLOUD.frontSm.box.y,
-  "--sm-w": CLOUD.frontSm.box.w,
-  "--sm-h": CLOUD.frontSm.box.h,
-};
+function looseStyle(id: LooseLayer): CssVars {
+  const { box, glint } = DISSOLVE[id];
+  return { "--bx": box.x, "--by": box.y, "--bw": box.w, "--bh": box.h, "--glint": `url("${glint}")` };
+}
 
 const SECTION_STYLE: CssVars = { "--hero-pin-h": `${HERO_PIN_SVH}svh` };
 
@@ -68,12 +67,36 @@ const HERO_SOCIALS = HERO_SOCIAL_IDS.map((id) => SOCIALS.find((social) => social
 const MONO_LINK_CLASS =
   "inline-flex h-11 items-center gap-1.5 font-mono text-mono text-ash transition-colors duration-(--dur-micro) hover:text-bone";
 
+interface DotLayerProps {
+  id: LooseLayer;
+}
+
+/**
+ * A loose dot layer. HeroMotion moves its box on scroll and useHeroParallax with the pointer; inside,
+ * the drift (hero.css) carries the dots and their glints, which shimmer while the portrait is live.
+ */
+function DotLayer({ id }: DotLayerProps) {
+  const { depth, className, style } = LOOSE_LAYERS[id];
+  const { src, width, height } = DISSOLVE[id];
+
+  return (
+    <div aria-hidden data-hero-layer={id} data-depth={depth} className={className} style={style}>
+      <div className="hero-drift">
+        {/* eslint-disable-next-line @next/next/no-img-element -- a 1 KB palette PNG of 1-bit dots; next/image would re-encode it lossy */}
+        <img src={src} width={width} height={height} alt="" decoding="async" fetchPriority="low" draggable={false} />
+        <span className="hero-glint" />
+      </div>
+    </div>
+  );
+}
+
 /**
  * The cold open. Server-rendered, so the h1 is plain HTML in the hero face. The name and the bust rig
- * share one stacking context (.hero-name), back to front: WAYNE, the back cloud, the bust
- * (HeroPortrait), the front cloud, RONDINA; the letterbox bars cover everything. The clouds are baked
- * images (scripts/assets/build-cloud.mts) that load after the photo. hero.css holds the geometry and
- * HeroMotion the scroll moves.
+ * share one stacking context (.hero-name), back to front: WAYNE, the far dots, the bust (HeroPortrait,
+ * whose black tee dissolves into the x-ray's bone dots), the near dots, RONDINA; the letterbox bars
+ * cover everything. The dot layers are tiny baked PNGs (scripts/assets/build-dissolve.mts) that load
+ * after the photo. hero.css holds the geometry and HeroMotion the scroll moves. Phones centre the lower
+ * third under the centred name (W24).
  */
 export function Hero() {
   const { client, team } = EDITIONS;
@@ -103,39 +126,9 @@ export function Hero() {
           </div>
 
           <div className="hero-name mt-6">
-            <div aria-hidden data-hero-layer="back" data-depth="3" className="hero-rig hero-cloud-back" style={BACK_CLOUD_STYLE}>
-              <picture>
-                <source type="image/avif" srcSet={CLOUD.back.avif} />
-                <img
-                  src={CLOUD.back.webp}
-                  width={CLOUD.back.width}
-                  height={CLOUD.back.height}
-                  alt=""
-                  decoding="async"
-                  fetchPriority="low"
-                  draggable={false}
-                />
-              </picture>
-            </div>
-
+            <DotLayer id="far" />
             <HeroPortrait />
-
-            <div aria-hidden data-hero-layer="front" data-depth="9" className="hero-rig hero-cloud-front" style={FRONT_CLOUD_STYLE}>
-              <picture>
-                <source media="(max-width: 1023px)" type="image/avif" srcSet={CLOUD.frontSm.avif} width={CLOUD.frontSm.width} height={CLOUD.frontSm.height} />
-                <source media="(max-width: 1023px)" type="image/webp" srcSet={CLOUD.frontSm.webp} width={CLOUD.frontSm.width} height={CLOUD.frontSm.height} />
-                <source type="image/avif" srcSet={CLOUD.front.avif} />
-                <img
-                  src={CLOUD.front.webp}
-                  width={CLOUD.front.width}
-                  height={CLOUD.front.height}
-                  alt=""
-                  decoding="async"
-                  fetchPriority="low"
-                  draggable={false}
-                />
-              </picture>
-            </div>
+            <DotLayer id="near" />
 
             <h1 id="hero-title" className="hero-title font-hero uppercase">
               <span data-hero-word="first" className="hero-word axes [--wdth:75] [--wght:640] lg:[--wdth:112]">
@@ -148,15 +141,15 @@ export function Hero() {
             </h1>
           </div>
 
-          <div className="hero-lower relative z-10 mt-4 flex flex-col gap-4 sm:mt-6 sm:gap-5 lg:mt-5">
+          <div className="hero-lower relative z-10 mt-4 flex flex-col gap-4 max-lg:items-center max-lg:text-center sm:mt-6 sm:gap-5 lg:mt-5">
             <p className="max-w-[34rem] text-body leading-[1.62] text-bone lg:text-body-lg">
               <EditionSwap client={client.lead} team={team.lead} />
             </p>
             {/* From xl the CTAs and the socials share one row, even where it runs past the lead's
-                column: that low on the stage the cloud's belly has dissolved to near black. From lg
+                column: that low on the stage the dissolve has thinned to a few dim dots. From lg
                 to xl the socials always take their own row, as hero.css's --hero-chrome assumes. */}
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-4 xl:w-max xl:flex-nowrap">
-              <div className="flex flex-wrap gap-3 lg:max-xl:basis-full">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 max-lg:justify-center lg:gap-y-4 xl:w-max xl:flex-nowrap">
+              <div className="flex flex-wrap gap-3 max-lg:justify-center lg:max-xl:basis-full">
                 <EditionSwap
                   client={
                     <Button href={client.primaryCta.href} size="lg">
@@ -182,7 +175,7 @@ export function Hero() {
                   }
                 />
               </div>
-              <ul aria-label="Profiles" className="hero-socials flex items-center gap-2">
+              <ul aria-label="Profiles" className="hero-socials flex items-center gap-2 max-lg:justify-center">
                 {HERO_SOCIALS.map((social) => (
                   <li key={social.id} className="flex">
                     <SocialCta social={social} variant="tile" />

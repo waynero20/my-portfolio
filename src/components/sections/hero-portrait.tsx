@@ -10,6 +10,7 @@ import type { AnimationEvent } from "react";
 import type { CssVars } from "@/lib/types";
 
 import { prefersReducedMotion } from "@/lib/dom";
+import { DISSOLVE } from "@/lib/generated/dissolve";
 import { PORTRAIT } from "@/lib/generated/portrait";
 
 /** How long the x-ray strip and the photo get to decode before the develop is skipped. */
@@ -45,6 +46,14 @@ const XRAY_STYLE: CssVars = {
   "--h": percent(PORTRAIT.xray.box.h, PORTRAIT.height),
 };
 
+/** The dissolve's body layer rides the bust, inside its float: a box in photo px from the photo's corner. */
+const BODY_DOTS_STYLE: CssVars = {
+  "--bx": DISSOLVE.body.box.x,
+  "--by": DISSOLVE.body.box.y,
+  "--bw": DISSOLVE.body.box.w,
+  "--bh": DISSOLVE.body.box.h,
+};
+
 /** The pause control covers the head (crown to chin, ear to ear). */
 const HEAD_STYLE: CssVars = {
   "--x": percent(PORTRAIT.head.x, PORTRAIT.width),
@@ -57,11 +66,13 @@ const HEAD_STYLE: CssVars = {
 const isReduced = (storeReduced: boolean): boolean => storeReduced || prefersReducedMotion() || readUserPref() === "off";
 
 /**
- * The hero bust: Wayne's photo, with its x-ray. First paint holds on the coarse 1-bit frame 0 (an inline
- * data URI, so no request); once the strip and the photo decode, the x-ray resolves coarse → fine and
- * fades to the colour photo, the resting state. While half the face is on screen and the tab visible, the
- * photo re-exposes every CYCLE_MS (fine → coarse → fine → colour) and floats (a slow CSS bob). The
- * button over the head pauses and resumes both (WCAG 2.2.2). Reduced motion shows the colour photo at
+ * The hero bust: Wayne's photo, with its x-ray, his black tee dissolving into the x-ray's bone dots (the
+ * body dots ride the float over both, so an exposure runs straight into them). First paint holds on
+ * the coarse 1-bit frame 0 (an inline data URI, so no request); once the strip and the photo decode,
+ * the x-ray resolves coarse → fine and fades to the colour photo, the resting state. While half the face is on screen and the tab visible, the
+ * photo re-exposes every CYCLE_MS (fine → coarse → fine → colour) and floats (a slow CSS bob), and the
+ * dissolve's loose dots drift and shimmer (hero.css keys them off data-float too). The button over the
+ * head pauses and resumes all of it (WCAG 2.2.2). Reduced motion shows the colour photo at
  * once and nothing moves (the button is inert then). HeroMotion moves the whole bust for the parallax.
  */
 export function HeroPortrait() {
@@ -179,6 +190,18 @@ export function HeroPortrait() {
           />
         </picture>
         <span ref={xrayRef} aria-hidden className="hero-xray" style={XRAY_STYLE} onAnimationEnd={onAnimationEnd} />
+        {/* eslint-disable-next-line @next/next/no-img-element -- a 1–2 KB palette PNG of 1-bit dots; next/image would re-encode it lossy */}
+        <img
+          src={DISSOLVE.body.src}
+          width={DISSOLVE.body.width}
+          height={DISSOLVE.body.height}
+          alt=""
+          decoding="async"
+          fetchPriority="low"
+          draggable={false}
+          className="hero-dots hero-dots-body"
+          style={BODY_DOTS_STYLE}
+        />
       </div>
       <button
         ref={headRef}
