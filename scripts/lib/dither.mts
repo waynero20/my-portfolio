@@ -25,8 +25,11 @@ function bayerMatrix(size: number): number[][] {
 /** The 8×8 Bayer matrix, row-major, values 0–63. */
 export const BAYER_8: readonly number[] = bayerMatrix(8).flat();
 
-/** The Bayer threshold in (0, 1) for cell (x, y), tiled every 8 cells. */
-export const bayerThreshold = (x: number, y: number): number => (BAYER_8[(y % 8) * 8 + (x % 8)] + 0.5) / 64;
+/** n mod 8 in 0–7, negative n included (a lattice's origin need not be the canvas's). */
+const mod8 = (n: number): number => ((n % 8) + 8) % 8;
+
+/** The Bayer threshold in (0, 1) for cell (x, y), tiled every 8 cells (any integer x, y). */
+export const bayerThreshold = (x: number, y: number): number => (BAYER_8[mod8(y) * 8 + mod8(x)] + 0.5) / 64;
 
 /** Rec. 709 luma of an sRGB pixel, 0–1. */
 export const luma = (r: number, g: number, b: number): number => (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;

@@ -1,10 +1,11 @@
 /**
  * The hero portrait's composition and pure maths: the photo (public/hero/face.png) is the unit of the
  * whole bust rig. Every length here is in source px of that photo ("u"). hero.css scales u to CSS px
- * with --s (the head's CSS height over HEAD.h), so the photo, its x-ray and the cloud layers can never
- * drift apart. build-portrait.mts writes these numbers into src/lib/generated/portrait.ts, and
- * build-cloud.mts bakes the cloud layers at exactly these sizes.
+ * with --s (the head's CSS height over HEAD.h), so the photo, its x-ray and the dissolve's dot layers
+ * can never drift apart. build-portrait.mts writes these numbers into src/lib/generated/portrait.ts, and
+ * build-dissolve.mts bakes the dot layers at exactly these boxes (src/lib/generated/dissolve.ts).
  */
+import { bayerThreshold } from "./dither.mts";
 
 const OPAQUE = 128;
 
@@ -20,9 +21,10 @@ export const SOURCE = { width: 992, height: 1057 } as const;
 export const CHIN_LINE = 765;
 
 /**
- * The bottom of the photo dissolves before its flat cut: alpha ramps to 0 from FADE.from to FADE.to (as
- * fractions of the height), rising by FADE.sides towards the left and right edges, so the shoulders
- * melt away first and the cut can never show, even where the cloud thins out.
+ * The x-ray's bottom dissolves before the flat cut: its cells drop out (dithered) as the keep factor
+ * ramps to 0 from FADE.from to FADE.to (as fractions of the height), rising by FADE.sides towards the
+ * left and right edges, so the shoulders go first and the cut can never show. It reaches a little lower
+ * than the colour photo's drop-out (DISSOLVE), so an exposure renders a few more rows of the chest.
  */
 export const FADE = { from: 0.905, to: 0.99, sides: 0.07 } as const;
 
@@ -34,42 +36,45 @@ export const FADE = { from: 0.905, to: 0.99, sides: 0.07 } as const;
  */
 export const NECK_SHADE = { cx: 492, halfWidth: [110, 190], rows: [748, 800, 880, 935], strength: 0.34 } as const;
 
-export type CloudLayerName = "back" | "front" | "front-sm";
+/**
+ * The x-ray box: the bust from just above the crown down to the cut, padded to whole coarse cells (96 u,
+ * the least common multiple of the x-ray's cells). Its top-left corner is the origin of every dot lattice
+ * in the rig (the x-ray's frames, the photo's drop-out and the dissolve's layers), so when the x-ray
+ * fires, its dots and the dissolve's line up.
+ */
+export const XRAY_BOX = { x: -32, y: SOURCE.height - 864, w: 1056, h: 864 } as const;
 
-export interface CloudLayer {
-  name: CloudLayerName;
-  /** The rendered canvas in px: x spans −1…1 across its width, y spans ±canvasHeight/width about its centre. */
-  width: number;
-  canvasHeight: number;
-  /** The rows kept: `height` rows from row `top` (above the crests and below the dissolved belly is empty alpha). */
-  top: number;
-  height: number;
-  /** The canvas over the photo, in u: left edge, width, and where the photo's cut row lands (a fraction of canvasHeight). */
-  place: { x: number; w: number; cutAt: number };
+export interface Box {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
 
 /**
- * The cloud rig (the art director's pick, "baked volumetric"). back: a wide soft bank that peeks out
- * behind the shoulders (behind the bust). front: the bank the bust floats in; the photo's cut sits in
- * its dense core. front-sm: the phone bake (max-width 1023px), wider and lower, so it reads as a bank at
- * 360–390px and its crests stay under RONDINA.
+ * The dissolve (Wayne's W23): the black tee breaks down into the x-ray's own bone dots, like a render
+ * that hasn't finished its bottom rows. The render front crosses the chest at row `front` on the centre
+ * line and up to `sides` higher at the photo's edges (the shoulders go first). Below it the colour photo
+ * drops out over `photoRun` (dropOut), gone well above the flat cut, and the dots run on for `trail`
+ * (build-dissolve.mts).
  */
-export const CLOUD_LAYERS: readonly CloudLayer[] = [
-  { name: "back", width: 1024, canvasHeight: 448, top: 64, height: 272, place: { x: -272, w: 1607, cutAt: 0.6 } },
-  { name: "front", width: 1600, canvasHeight: 560, top: 64, height: 392, place: { x: -140, w: 1330, cutAt: 0.56 } },
-  { name: "front-sm", width: 1280, canvasHeight: 512, top: 112, height: 288, place: { x: -254, w: 1500, cutAt: 0.56 } },
-];
+export const DISSOLVE = { front: 872, photoRun: 118, sides: 96, trail: 440 } as const;
 
-/** A layer's box over the photo in u: [x, y, w, h]. */
-export function cloudBox(layer: CloudLayer): { x: number; y: number; w: number; h: number } {
-  const k = layer.place.w / layer.width;
-  return {
-    x: layer.place.x,
-    y: SOURCE.height - (layer.place.cutAt * layer.canvasHeight - layer.top) * k,
-    w: layer.place.w,
-    h: layer.height * k,
-  };
-}
+/** The photo's drop-out cell (u): the x-ray's finest. */
+export const PHOTO_CELL = 4;
+
+/**
+ * The dot layers' boxes (u, from the photo's corner; every edge on the 96 u lattice). far: a wide, dim
+ * bank behind the bust. body: the chest dissolving, riding the bust over the photo. near: loose dots in
+ * front of the bust, under RONDINA, a little wider than the body.
+ */
+export const DISSOLVE_LAYERS = {
+  far: { x: -512, y: 673, w: 2016, h: 864 },
+  body: { x: -224, y: 769, w: 1440, h: 672 },
+  near: { x: -320, y: 769, w: 1632, h: 672 },
+} as const satisfies Record<string, Box>;
+
+export type DissolveLayerName = keyof typeof DISSOLVE_LAYERS;
 
 /** Width of the opaque span (first to last pixel with alpha ≥ 128) of every row; 0 for an empty row. */
 export function widthProfile(rgba: Uint8Array, width: number, height: number): number[] {
@@ -105,12 +110,17 @@ const JAW_TUCK = 0.9;
 /** A row counts as the shoulders once it is this much wider than the narrowest neck row above it. */
 const SHOULDER_FLARE = 1.2;
 
+/** The jaw search starts once a row is this wide a share of the head's widest (past loose hair at the crown). */
+const HEAD_FILLED = 0.6;
+
 /**
  * Checks a hand-set chin line is plausible: at or below the head's last full-width row (the jaw tuck)
  * and above the shoulder flare. Throws otherwise.
  */
 export function assertChinInNeck(profile: readonly number[], chinRow: number): void {
-  const top = profile.findIndex((w) => w > 0);
+  const crown = profile.findIndex((w) => w > 0);
+  const widest = Math.max(...profile.slice(crown, chinRow + 1));
+  const top = profile.findIndex((w, y) => y >= crown && w >= HEAD_FILLED * widest);
   let headMax = 0;
   let jawRow = -1;
   for (let y = top; y < profile.length; y++) {
@@ -183,13 +193,40 @@ export function fadeAt(x: number, y: number, width: number, height: number): num
   return 1 - smoothstep(from, to, y);
 }
 
-/** Multiplies alpha by the bottom fade (straight alpha: colour is untouched). */
-export function applyFade(rgba: Uint8Array, width: number, height: number): Uint8Array {
+/** The render front's row at column x (u). */
+export const frontAt = (x: number): number => DISSOLVE.front - DISSOLVE.sides * ((2 * x) / SOURCE.width - 1) ** 2;
+
+/** Depth into the dissolve at (x, y): 0 at the render front, 1 at the end of its trail. */
+export const dissolveDepth = (x: number, y: number): number => (y - frontAt(x)) / DISSOLVE.trail;
+
+/** The share of the colour photo kept at (x, y): 1 above the front, 0 from `photoRun` below it. */
+export const photoKeep = (x: number, y: number): number => 1 - smoothstep(frontAt(x), frontAt(x) + DISSOLVE.photoRun, y);
+
+/** Column and row of the lattice cell (size `cell`, origin XRAY_BOX's corner) that holds u (x, y). */
+export const latticeX = (x: number, cell: number): number => Math.floor((x - XRAY_BOX.x) / cell);
+export const latticeY = (y: number, cell: number): number => Math.floor((y - XRAY_BOX.y) / cell);
+
+/**
+ * Drops the photo's chest out in Bayer cells: a cell goes wholly transparent where photoKeep at its
+ * centre is at or under its Bayer threshold, a 1-bit alpha fade on the x-ray's lattice (straight alpha:
+ * colour is untouched). `rgba` is the photo at `width` px (any size of it): the cells and the lattice
+ * origin scale with it, rounded to whole px, so every size keeps crisp cells (which also encode far
+ * smaller than a resampled pattern). At the source size the cells are exactly PHOTO_CELL u.
+ */
+export function dropOut(rgba: Uint8Array, width: number, height: number): Uint8Array {
+  const scale = width / SOURCE.width;
+  const cell = Math.max(2, Math.round(PHOTO_CELL * scale));
+  const originX = Math.round(XRAY_BOX.x * scale);
+  const originY = Math.round(XRAY_BOX.y * scale);
   const out = new Uint8Array(rgba);
   for (let y = 0; y < height; y++) {
+    const iy = Math.floor((y - originY) / cell);
+    const cy = (originY + (iy + 0.5) * cell) / scale;
     for (let x = 0; x < width; x++) {
       const i = (y * width + x) * 4 + 3;
-      out[i] = Math.round(rgba[i] * fadeAt(x, y, width, height));
+      if (out[i] === 0) continue;
+      const ix = Math.floor((x - originX) / cell);
+      if (photoKeep((originX + (ix + 0.5) * cell) / scale, cy) <= bayerThreshold(ix, iy)) out[i] = 0;
     }
   }
   return out;

@@ -1,17 +1,18 @@
 /**
- * Builds the hero's portrait.   npm run assets:portrait   (then npm run assets:cloud)
+ * Builds the hero's portrait.   npm run assets:portrait   (then npm run assets:dissolve)
  *
  * One bust, Wayne's photo (public/hero/face.png: head, neck and black tee, cut flat at the bottom row),
  * in two looks that share its box exactly:
- * - public/hero/portrait-{480,768,992}.{avif,webp}: the colour photo, the resting image. Its bottom
- *   dissolves before the flat cut (scripts/lib/portrait.mts FADE), so the cut can never show, and the
- *   neck carries a soft chin shadow (NECK_SHADE) so RONDINA holds its contrast across it.
+ * - public/hero/portrait-{480,768,992}.{avif,webp}: the colour photo, the resting image. Its chest drops
+ *   out in Bayer cells on the x-ray's lattice well above the flat cut (scripts/lib/portrait.mts DISSOLVE,
+ *   dropOut), so the cut can never show and the dissolve's dots take over, and the neck carries a soft
+ *   chin shadow (NECK_SHADE) so RONDINA holds its contrast across it.
  * - public/hero/portrait-xray.png: the x-ray develop, a 1-bit ordered (Bayer) dither of bone dots,
  *   FRAMES frames coarse to fine in one horizontal strip. Every frame is stored at the finest cell grid,
  *   so the strip is tiny and the page scales it up with image-rendering: pixelated. The first frame is
  *   also inlined as a data URI for the first paint.
- * - src/lib/generated/portrait.ts: PORTRAIT, the rig in source px ("u"): the head box, the image sets,
- *   the x-ray box and the cloud layers' boxes (their images come from build-cloud.mts).
+ * - src/lib/generated/portrait.ts: PORTRAIT, the rig in source px ("u"): the head box, the image sets
+ *   and the x-ray box. The dissolve's dot layers are build-dissolve.mts's (generated/dissolve.ts).
  */
 import { existsSync, mkdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, relative } from "node:path";
@@ -19,7 +20,18 @@ import sharp from "sharp";
 import { alphaBounds, bayerThreshold, boxDownsample, luma, nearestUpscale } from "../lib/dither.mts";
 import type { Rgb } from "../lib/dither.mts";
 import { ROOT, fromRoot } from "../lib/paths.mts";
-import { CHIN_LINE, CLOUD_LAYERS, SOURCE, applyFade, assertChinInNeck, cloudBox, fadeAt, shadeNeck, spanBetween, toneMap, widthProfile } from "../lib/portrait.mts";
+import {
+  CHIN_LINE,
+  SOURCE,
+  XRAY_BOX,
+  assertChinInNeck,
+  dropOut,
+  fadeAt,
+  shadeNeck,
+  spanBetween,
+  toneMap,
+  widthProfile,
+} from "../lib/portrait.mts";
 import type { Tone } from "../lib/portrait.mts";
 
 const PORTRAIT_TS = fromRoot("src/lib/generated/portrait.ts");
@@ -33,11 +45,6 @@ const BUDGET = { phoneAvif: 45_000, desktopAvif: 90_000, xray: 10_000 } as const
 /** x-ray cell sizes in u, coarse to fine. Each divides every coarser one, and all divide the x-ray box. */
 const CELLS = [32, 24, 16, 12, 8, 4] as const;
 const REST_CELL = CELLS[CELLS.length - 1];
-/**
- * The x-ray box in u: the bust from just above the crown down to the cut, padded to whole coarse cells
- * (96 = the cells' least common multiple). Its bottom edge is the photo's cut.
- */
-const XRAY_BOX = { x: -32, y: SOURCE.height - 864, w: 1056, h: 864 } as const;
 const GRID_W = XRAY_BOX.w / REST_CELL;
 const GRID_H = XRAY_BOX.h / REST_CELL;
 
@@ -115,7 +122,7 @@ function maxAlpha(rgba: Uint8Array, width: number, height: number, cell: number)
 /**
  * One 1-bit frame at `cell`: bone where the cell's tone beats the Bayer threshold, blackout paper
  * elsewhere inside the silhouette. The bottom fade is dithered too (a cell survives where the fade
- * beats a second threshold), so the x-ray dissolves into the cloud the way the photo does.
+ * beats a second threshold), so the x-ray runs on into the dissolve's dots the way the photo does.
  */
 function ditherFrame(grey: Uint8Array, shape: Uint8Array, cell: number): { bits: Uint8Array; cols: number; rows: number } {
   const cols = XRAY_BOX.w / cell;
@@ -146,20 +153,26 @@ function measureHead(image: RawImage) {
   return { x: span.left, y: top, w: span.width, h: CHIN_LINE - top };
 }
 
-async function writeColour(faded: RawImage): Promise<{ avif: string; webp: string; sizes: Map<string, number> }> {
+/** The colour photo at every width: resized, then its chest dropped out at that size (dropOut). */
+async function writeColour(shaded: RawImage): Promise<{ avif: string; webp: string; sizes: Map<string, number> }> {
   const sizes = new Map<string, number>();
   const sets = { avif: [] as string[], webp: [] as string[] };
   for (const width of WIDTHS) {
     const height = Math.round((SOURCE.height * width) / SOURCE.width);
-    const resized = sharp(Buffer.from(faded.data), { raw: { width: faded.width, height: faded.height, channels: 4 } }).resize(width, height, {
-      kernel: "lanczos3",
-    });
+    const resized = await readRgba(
+      await sharp(Buffer.from(shaded.data), { raw: { width: shaded.width, height: shaded.height, channels: 4 } })
+        .resize(width, height, { kernel: "lanczos3" })
+        .raw()
+        .toBuffer(),
+      { width, height },
+    );
+    const photo = sharp(Buffer.from(dropOut(resized.data, width, height)), { raw: { width, height, channels: 4 } });
     for (const format of ["avif", "webp"] as const) {
       const file = fromRoot(`public/hero/portrait-${width}.${format}`);
       const encoded =
         format === "avif"
-          ? resized.clone().avif({ quality: 64, effort: 9, chromaSubsampling: "4:2:0" })
-          : resized.clone().webp({ quality: 82, alphaQuality: 82, effort: 6, smartSubsample: true });
+          ? photo.clone().avif({ quality: 64, effort: 9, chromaSubsampling: "4:2:0" })
+          : photo.clone().webp({ quality: 82, alphaQuality: 82, effort: 6, smartSubsample: true });
       await encoded.toFile(file);
       sizes.set(`${width}.${format}`, statSync(file).size);
       sets[format].push(`/hero/portrait-${width}.${format} ${width}w`);
@@ -181,9 +194,8 @@ async function main(): Promise<void> {
   const head = measureHead(image);
   mkdirSync(fromRoot("public/hero"), { recursive: true });
 
-  // The colour photo: the neck shaded under the chin (RONDINA's contrast), faded at the bottom.
-  const faded: RawImage = { ...image, data: applyFade(shadeNeck(image.data, image.width, image.height), image.width, image.height) };
-  const colour = await writeColour(faded);
+  // The colour photo: the neck shaded under the chin (RONDINA's contrast), the chest dropping out.
+  const colour = await writeColour({ ...image, data: shadeNeck(image.data, image.width, image.height) });
 
   // The x-ray: tone-mapped grey in the x-ray box, dithered at every cell size.
   const framed = inXrayBox(image);
@@ -202,17 +214,6 @@ async function main(): Promise<void> {
   const frame0 = await exactPng(frames[0].bits, frames[0].cols, frames[0].rows);
   console.log(`${relative(ROOT, xrayFile)}  ${GRID_W * CELLS.length}×${GRID_H}  ${xray.length} B  frame0 ${frame0.length} B`);
 
-  const clouds = CLOUD_LAYERS.map((layer) => {
-    const key = layer.name === "front-sm" ? "frontSm" : layer.name;
-    return `    ${key}: {
-      avif: "/hero/cloud-${layer.name}.avif",
-      webp: "/hero/cloud-${layer.name}.webp",
-      width: ${layer.width},
-      height: ${layer.height},
-      box: ${box(cloudBox(layer))},
-    },`;
-  });
-
   mkdirSync(dirname(PORTRAIT_TS), { recursive: true });
   writeFileSync(
     PORTRAIT_TS,
@@ -222,12 +223,12 @@ async function main(): Promise<void> {
  * The hero's bust rig. Every box is in source px of public/hero/face.png ("u"), from its top-left
  * corner; hero.css scales u to CSS px with --s (the head's CSS height over head.h).
  * - head: crown to the chin line, ear to ear. The layout sizes the head (--m) from this box.
- * - photo: the colour bust (the resting image) as AVIF and WebP srcsets; its bottom dissolves before the cut.
+ * - photo: the colour bust (the resting image) as AVIF and WebP srcsets; its chest drops out in Bayer
+ *   cells well above the flat cut, where the dissolve takes over.
  * - xray: the develop, \`frames\` 1-bit frames (coarse to fine) of \`frameWidth\` × \`frameHeight\` px in one
  *   horizontal strip, covering \`box\`. Render with image-rendering: pixelated. frame0 is the coarsest,
  *   inline, for the first paint.
- * - cloud: the baked layers (build-cloud.mts). back sits behind the bust, front (or frontSm below 1024px)
- *   in front of it; the photo's cut row lies in each one's dense core.
+ * The dissolve's dot layers, on the same lattice, are in generated/dissolve.ts (build-dissolve.mts).
  */
 export const PORTRAIT = {
   width: ${SOURCE.width},
@@ -245,9 +246,6 @@ export const PORTRAIT = {
     frameHeight: ${GRID_H},
     box: ${box(XRAY_BOX)},
     frame0: "data:image/png;base64,${frame0.toString("base64")}",
-  },
-  cloud: {
-${clouds.join("\n")}
   },
 } as const;
 `,

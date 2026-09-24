@@ -9,8 +9,16 @@ export type HeroWdth = keyof (typeof metrics.advances)[HeroWord];
 /** Mirrors --text-display--line-height in globals.css (hero-fit.test.ts keeps them equal). */
 export const HERO_LINE_HEIGHT = 0.82;
 
-/** Mirrors --text-display--letter-spacing in globals.css, in em. */
+/** Mirrors --text-display--letter-spacing in globals.css, in em: the name's tracking on desktop (wdth 112). */
 export const HERO_TRACKING_EM = -0.04;
+
+/**
+ * The name's tracking on phones (wdth 75), in em (hero.css --hero-track). The narrow cut sits its
+ * letters 0.028em closer than the wide one (the mean closest approach of the name's letter pairs at
+ * wght 640, measured from the outlines), so this keeps the gaps between letters what they are on
+ * desktop (Wayne's W26).
+ */
+export const HERO_PHONE_TRACKING_EM = -0.012;
 
 /** Cap height in em. */
 export const HERO_CAP_EM = metrics.capHeight / metrics.unitsPerEm;
@@ -27,8 +35,8 @@ export function heroDisplayPx(viewportWidth: number, viewportHeight: number): nu
  * A word's rendered width in em: its kerned advance plus the tracking Chrome adds after every
  * letter, the last one included.
  */
-export function heroWordEm(word: HeroWord, wdth: HeroWdth): number {
-  return metrics.advances[word][wdth] / metrics.unitsPerEm + word.length * HERO_TRACKING_EM;
+export function heroWordEm(word: HeroWord, wdth: HeroWdth, trackingEm: number = HERO_TRACKING_EM): number {
+  return metrics.advances[word][wdth] / metrics.unitsPerEm + word.length * trackingEm;
 }
 
 /**

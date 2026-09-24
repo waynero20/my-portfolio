@@ -36,7 +36,7 @@ export const SITE = {
 
 export const EDITIONS = {
   client: {
-    lead: "I design and build websites, online stores, marketplaces and ERPs — from first sketch to production database.",
+    lead: "I design and build websites, online stores, marketplaces and ERPs, from first sketch to production database.",
     primaryCta: { label: "See the work", href: "#work" },
     secondaryCta: { label: "Dial me in", href: "#contact" },
     confirmed: true,

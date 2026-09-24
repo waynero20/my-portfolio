@@ -14,8 +14,18 @@ import { cn } from "@/lib/utils";
 
 import "./globals.css";
 
-const TITLE = "Wayne Rondina — Full-stack developer, Cebu";
+const TITLE = `${SITE.name} — ${SITE.role}, ${SITE.location.city}`;
 const DESCRIPTION = EDITIONS.client.lead;
+/** The country spelled out for the card's alt text (a screen reader reads "PH" as two letters). */
+const OG_COUNTRY = new Intl.DisplayNames(["en"], { type: "region" }).of(SITE.location.country) ?? SITE.location.country;
+/** The link-preview card, built by scripts/assets/build-og-image.mts (npm run assets:og) from the same SITE fields. */
+const OG_IMAGE = {
+  url: "/og-image-v2.jpg",
+  width: 1200,
+  height: 630,
+  type: "image/jpeg",
+  alt: `${SITE.name}, ${SITE.role.toLowerCase()} in ${SITE.location.city}, ${OG_COUNTRY}: his portrait beside his name in a dark, lamplit room`,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -34,11 +44,11 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     type: "website",
     url: SITE.url,
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: TITLE }],
+    images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/og-image.png"],
+    images: [OG_IMAGE],
   },
 };
 
